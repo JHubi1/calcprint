@@ -1,5 +1,6 @@
 .DEFAULT_GOAL = buildWeb
 flutter ?= flutter
+package ?= com.jhubi1.calcprint
 
 .PHONY: clean
 clean:
@@ -21,5 +22,5 @@ buildFull: clean buildWeb buildAndroid
 
 .PHONY: helperAndroidDeeplink
 helperAndroidDeeplink:
-	adb shell pm verify-app-links --re-verify com.jhubi1.calcprint
-	adb shell pm get-app-links com.jhubi1.calcprint
+	adb shell pm verify-app-links --re-verify $(package)
+	adb shell pm get-app-links $(package)
