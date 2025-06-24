@@ -1,6 +1,6 @@
 {
     "$schema": "https://www.unpkg.com/wrangler@latest/config-schema.json",
-    "name": "CalcPrint",
+    "name": "calcprint",
     "compatibility_date": "2025-06-24",
     "build": {
         "command": "FLUTTER_VERSION=3.29.0 && set -x && if ! command -v flutter >/dev/null 2>&1; then git clone --depth 1 --branch ${FLUTTER_VERSION} https://github.com/flutter/flutter.git && make build flutter=\"$(pwd)/flutter/bin/flutter\"; else make build; fi"
