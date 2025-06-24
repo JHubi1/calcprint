@@ -1,0 +1,14 @@
+[
+    {
+        "relation": [
+            "delegate_permission/common.handle_all_urls"
+        ],
+        "target": {
+            "namespace": "android_app",
+            "package_name": "com.jhubi1.calcprint",
+            "sha256_cert_fingerprints": [
+                "F6:13:25:7F:19:9D:08:42:98:9B:2A:33:C6:8B:27:AD:CC:DD:31:10:C0:6A:A6:11:8F:59:13:17:CA:CB:57:7C"
+            ]
+        }
+    }
+]

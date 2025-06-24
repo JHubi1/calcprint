@@ -1,0 +1,8 @@
+{
+    "cSpell.words": [
+        "calcprint"
+    ],
+    "todo-tree.filtering.excludeGlobs": [
+        "**/build/*/**"
+    ]
+}
