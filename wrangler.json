@@ -3,7 +3,7 @@
     "name": "calcprint",
     "compatibility_date": "2025-06-24",
     "build": {
-        "command": "FLUTTER_VERSION=3.29.0 && if ! command -v flutter >/dev/null 2>&1; then curl -sL https://storage.googleapis.com/flutter_infra_release/releases/stable/linux/flutter_linux_${FLUTTER_VERSION}-stable.tar.xz | tar -xJ && make buildWeb flutter=\"$(pwd)/flutter/bin/flutter\"; else make buildWeb; fi"
+        "command": "FLUTTER_VERSION=3.29.0 && set -x && if ! command -v flutter >/dev/null 2>&1; then curl -L https://storage.googleapis.com/flutter_infra_release/releases/stable/linux/flutter_linux_${FLUTTER_VERSION}-stable.tar.xz | tar -xJ && make buildWeb flutter=\"$(pwd)/flutter/bin/flutter\"; else make buildWeb; fi"
     },
     "assets": {
         "directory": "./build/web",
