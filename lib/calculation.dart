@@ -48,40 +48,37 @@ class CalculationModel extends StatelessWidget {
             subtitle: Text("data"),
           ),
           titleAlignment: ListTileTitleAlignment.top,
-          trailing: DefaultTextStyle(
-            style: TextStyle(),
-            child: Padding(
-              padding: EdgeInsets.only(
-                top: 2 * (ListTileTheme.of(context).minVerticalPadding ?? 4),
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Flexible(
-                        child: Padding(
-                          padding: const EdgeInsets.only(right: 8),
-                          child: Text(
-                            "${model.quantity.text.orNull ?? modelControllerQuantityDefault}x",
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                      ),
-                      Flexible(
+          trailing: Padding(
+            padding: EdgeInsets.only(
+              top: 2 * (ListTileTheme.of(context).minVerticalPadding ?? 4),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Flexible(
+                      child: Padding(
+                        padding: const EdgeInsets.only(right: 8),
                         child: Text(
-                          "${model.currency.text.orNull ?? modelControllerCurrencyDefault}${calculatePrice(model).toStringAsFixed(2)}",
-                          style: TextStyle(fontWeight: FontWeight.bold),
+                          "${model.quantity.text.orNull ?? modelControllerQuantityDefault}x",
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
-                    ],
-                  ),
-                ],
-              ),
+                    ),
+                    Flexible(
+                      child: Text(
+                        "${data.currencyTextOrDefault}${calculatePrice(model).toStringAsFixed(2)}",
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
             ),
           ),
         ),
@@ -112,7 +109,7 @@ class CalculationTable extends StatelessWidget {
             children: [
               ListTileHeader(
                 usePaddingTop:
-                    (data.printoutFrom == null && data.printoutTo == null),
+                    (data.printoutFrom != null || data.printoutTo != null),
                 child: Text(
                   data.printoutTitle ?? "Untitled Project",
                   maxLines: 2,
@@ -170,22 +167,19 @@ class CalculationTable extends StatelessWidget {
 
               ListTile(
                 title: Text("Total"),
-                trailing: DefaultTextStyle(
-                  style: TextStyle(),
-                  child: Builder(
-                    builder: (context) {
-                      double totalPrice = 0;
+                trailing: Builder(
+                  builder: (context) {
+                    double totalPrice = 0;
 
-                      for (final model in data.models) {
-                        totalPrice += CalculationModel.calculatePrice(model);
-                      }
+                    for (final model in data.models) {
+                      totalPrice += CalculationModel.calculatePrice(model);
+                    }
 
-                      return Text(
-                        "$modelControllerCurrencyDefault${totalPrice.toStringAsFixed(2)}",
-                        style: TextStyle(fontWeight: FontWeight.bold),
-                      );
-                    },
-                  ),
+                    return Text(
+                      "$dataStoreCurrencyDefault${totalPrice.toStringAsFixed(2)}",
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    );
+                  },
                 ),
               ),
             ],
@@ -222,35 +216,37 @@ class _ModelFormState extends State<ModelForm> {
     child: DropdownMenu(
       enabled: enabled,
       enableSearch: true,
-      controller: widget.model.currency,
+      controller: data.currency,
       textAlign: TextAlign.right,
       textStyle: TextStyle(
         color: enabled ? null : Theme.of(context).disabledColor,
       ),
       inputDecorationTheme: InputDecorationTheme(border: InputBorder.none),
       dropdownMenuEntries:
-          modelControllerCurrenciesDefault
+          dataStoreCurrenciesDefault
               .map((e) => DropdownMenuEntry(value: e, label: e))
               .toList(),
     ),
   );
 
-  void render(_) {
+  void render() {
     widget.model.formKey.currentState?.validate();
     widget.onRender();
-    setState(() {});
+    if (mounted) {
+      setState(() {});
+    }
   }
 
   @override
   void initState() {
-    widget.model.currency.addListener(() => render(null));
+    data.currency.addListener(render);
     super.initState();
   }
 
   @override
   void dispose() {
     super.dispose();
-    widget.model.currency.removeListener(() => render(null));
+    data.currency.removeListener(render);
   }
 
   @override
@@ -298,7 +294,7 @@ class _ModelFormState extends State<ModelForm> {
                                         "wobblyChessKnight",
                                       ][seed],
                                 ),
-                                onChanged: render,
+                                onChanged: (_) => render,
                               ),
                             ),
                             SizedBox(width: 8),
@@ -327,7 +323,7 @@ class _ModelFormState extends State<ModelForm> {
                                   }
                                   return null;
                                 },
-                                onChanged: render,
+                                onChanged: (_) => render,
                               ),
                             ),
                           ],
@@ -356,7 +352,7 @@ class _ModelFormState extends State<ModelForm> {
                                   "Wobbly chess knight",
                                 ][seed],
                           ),
-                          onChanged: render,
+                          onChanged: (_) => render,
                         ),
                       ),
 
@@ -412,7 +408,7 @@ class _ModelFormState extends State<ModelForm> {
                             }
                             return null;
                           },
-                          onChanged: render,
+                          onChanged: (_) => render,
                         ),
                       ),
                       ListTilePadding(
@@ -439,7 +435,7 @@ class _ModelFormState extends State<ModelForm> {
                             }
                             return null;
                           },
-                          onChanged: render,
+                          onChanged: (_) => render,
                         ),
                       ),
 
@@ -476,7 +472,7 @@ class _ModelFormState extends State<ModelForm> {
                               }
                               return null;
                             },
-                            onChanged: render,
+                            onChanged: (_) => render,
                           ),
                         ),
                       ),
@@ -504,7 +500,7 @@ class _ModelFormState extends State<ModelForm> {
                             }
                             return null;
                           },
-                          onChanged: render,
+                          onChanged: (_) => render,
                         ),
                       ),
                     ],

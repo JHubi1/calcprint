@@ -1,0 +1,22 @@
+CalcPrint
+Copyright 2025 JHubi1
+
+This project is licensed under Apache License 2.0, see LICENSE for details.
+
+This software uses a variety of open source packages. These may be licensed
+under different licenses and need to be acknowledged separately. For a complete
+list of acknowledgements, compile the project, click on "About CalcPrint" in
+the top right corner and then on "View Licenses".
+This notice file is also embedded in the application itself. They can be found
+in the same "About CalcPrint" dialog under "View Notice".
+
+If this software is modified, this notice and the project's license must be
+preserved in the application itself. All changes must be listed below,
+following the Apache License 2.0 requirements. Make sure to also update the
+date for clarity.
+
+---
+
+Date: 2025-06-27
+Modifications:
+- (no modifications from original source)

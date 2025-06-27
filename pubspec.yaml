@@ -3,6 +3,9 @@ description: A tool for calculating the printing cost of 3D print items.
 publish_to: none
 version: 0.1.0+1
 
+repository: https://github.com/JHubi1/calcprint
+homepage: https://calcprint.com
+
 environment:
   sdk: ^3.7.0
   flutter: 3.29.0
@@ -12,7 +15,10 @@ dependencies:
     sdk: flutter
   flutter_web_plugins:
     sdk: flutter
+  flutter_localizations:
+    sdk: flutter
 
+  intl: any
   material_symbols_icons: ^4.2815.1
   universal_web: ^1.1.0+2
   auto_route: ^10.1.0+1
@@ -22,7 +28,7 @@ dependencies:
   share_plus: ^11.0.0
   pretty_qr_code: ^3.4.0
   shared_preferences: ^2.5.3
-  relative_time: ^5.0.0
+  get_time_ago: ^2.3.1
   widgets_to_image: ^2.0.1
 
 dev_dependencies:
@@ -34,5 +40,11 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+  generate: true
+  fonts:
+    - family: NotoSansMono
+      fonts:
+        - asset: assets/fonts/NotoSansMono-VariableFont_wdth,wght.ttf
   assets:
+    - NOTICE
     - assets/data/

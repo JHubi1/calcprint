@@ -54,6 +54,7 @@ class _ToolbarButtonBookmarkState extends State<ToolbarButtonBookmark> {
     return IconButton(
       tooltip: isBookmarked ? "Remove bookmark" : "Add bookmark",
       onPressed: () {
+        if (!data.isModified) return;
         if (isBookmarked) {
           _bookmarks.removeBookmark();
         } else {
@@ -88,43 +89,40 @@ class _ToolbarButtonResetState extends State<ToolbarButtonReset> {
   Widget build(BuildContext context) {
     return IconButton(
       tooltip: "Clear form data",
-      onPressed:
-          data.isModified
-              ? () {
-                final oldModels = data.toJson();
-                DataStore.newInstanceWith();
-                widget.onUpdate();
+      onPressed: () {
+        if (!data.isModified) return;
 
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    behavior: SnackBarBehavior.floating,
-                    width: Display.from(context).isPhone ? null : 288,
-                    content: Text("All form data has been cleared."),
-                    action: SnackBarAction(
-                      label: "Undo",
-                      onPressed: () {
-                        if (!data.isModified) {
-                          setState(() {
-                            final tmp =
-                                jsonDecode(oldModels) as Map<String, dynamic>;
-                            DataStore.newInstanceWith(
-                              printoutTitle: tmp["printoutTitle"] as String?,
-                              printoutFrom: tmp["printoutFrom"] as String?,
-                              printoutTo: tmp["printoutTo"] as String?,
-                              printoutKeepPrivate:
-                                  tmp["printoutKeepPrivate"] as bool?,
-                              models: jsonEncode(tmp["models"]),
-                            );
-                            widget.onUpdate();
-                          });
-                        }
-                        ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                      },
-                    ),
-                  ),
-                );
-              }
-              : null,
+        final oldModels = data.toJson();
+        DataStore.newInstanceWith();
+        widget.onUpdate();
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            behavior: SnackBarBehavior.floating,
+            width: Display.from(context).isPhone ? null : 288,
+            content: Text("Form data has been cleared."),
+            action: SnackBarAction(
+              label: "Undo",
+              onPressed: () {
+                if (!data.isModified) {
+                  setState(() {
+                    final tmp = jsonDecode(oldModels) as Map<String, dynamic>;
+                    DataStore.newInstanceWith(
+                      printoutTitle: tmp["printoutTitle"] as String?,
+                      printoutFrom: tmp["printoutFrom"] as String?,
+                      printoutTo: tmp["printoutTo"] as String?,
+                      printoutKeepPrivate: tmp["printoutKeepPrivate"] as bool?,
+                      models: jsonEncode(tmp["models"]),
+                    );
+                    widget.onUpdate();
+                  });
+                }
+                ScaffoldMessenger.of(context).hideCurrentSnackBar();
+              },
+            ),
+          ),
+        );
+      },
       icon: Icon(Symbols.restart_alt),
     );
   }
@@ -137,8 +135,13 @@ class ToolbarButtonShare extends StatelessWidget {
   Widget build(BuildContext context) {
     return IconButton(
       tooltip: "Share project",
-      onPressed: () => SharePlus.instance.share(ShareParams(uri: data.url)),
+      onPressed: () {
+        if (!data.isModified) return;
+        SharePlus.instance.share(ShareParams(uri: data.url));
+      },
       onLongPress: () {
+        if (!data.isModified) return;
+
         final image = QrImage(
           QrCode.fromData(
             data: data.url.toString(),

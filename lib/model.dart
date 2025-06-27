@@ -8,6 +8,9 @@ import 'recent.dart';
 
 DataStore get data => DataStore.instance;
 
+final List<String> dataStoreCurrenciesDefault = ["€", r"$", "£", "¥"];
+final String dataStoreCurrencyDefault = dataStoreCurrenciesDefault.elementAt(1);
+
 class DataStore {
   final TextEditingController printoutTitleController;
   String? get printoutTitle => printoutTitleController.text.orNull;
@@ -21,6 +24,11 @@ class DataStore {
   bool printoutKeepPrivateRaw;
   bool? get printoutKeepPrivate => printoutKeepPrivateRaw.orNullOnFalse;
 
+  final TextEditingController currency;
+  String? get currencyText =>
+      currency.text.orNullOnDefault(dataStoreCurrencyDefault);
+  String get currencyTextOrDefault => currency.text;
+
   List<ModelControllers> models;
   String get modelsJson {
     return jsonEncode(models.map((m) => jsonDecode(m.toString())).toList());
@@ -33,7 +41,8 @@ class DataStore {
         printoutFromController.text.isNotEmpty ||
         printoutToController.text.isNotEmpty ||
         printoutKeepPrivateRaw != false ||
-        isModelsModified;
+        isModelsModified ||
+        currency.text != dataStoreCurrencyDefault;
   }
 
   DataStore._({
@@ -42,6 +51,7 @@ class DataStore {
     required this.printoutToController,
     required this.printoutKeepPrivateRaw,
     required this.models,
+    required this.currency,
   });
 
   static DataStore get _default => DataStore._(
@@ -50,6 +60,7 @@ class DataStore {
     printoutToController: TextEditingController(),
     printoutKeepPrivateRaw: false,
     models: [ModelControllers()],
+    currency: TextEditingController(text: dataStoreCurrencyDefault),
   );
 
   static DataStore? _instance;
@@ -64,6 +75,7 @@ class DataStore {
     String? printoutTo,
     bool? printoutKeepPrivate,
     String? models,
+    String? currency,
   }) {
     final fallback = _default;
     _instance = DataStore._(
@@ -86,6 +98,9 @@ class DataStore {
             .map((m) => ModelControllers.fromJson(m))
             .toList();
       }, fallback: fallback.models),
+      currency: TextEditingController(
+        text: currency ?? dataStoreCurrencyDefault,
+      ),
     );
     return _instance!;
   }
@@ -104,6 +119,7 @@ class DataStore {
           (models.length != 1 || models[0].isModified)
               ? jsonDecode(modelsJson)
               : null,
+      "currency": currencyText,
     }..removeNullValues(),
   );
 
@@ -117,6 +133,7 @@ class DataStore {
       "printoutKeepPrivate": printoutKeepPrivate.toStringOrNull(),
       "models":
           (models.length != 1 || models[0].isModified) ? modelsJson : null,
+      "currency": currencyText,
     }..removeNullValues()).orNull,
   );
 }
@@ -181,13 +198,10 @@ class ModelAdditionControllers {
   }
 }
 
-String get modelControllerCurrencyDefault => r"$";
-final List<String> modelControllerCurrenciesDefault = ["€", r"$", "£", "¥"];
 String get modelControllerQuantityDefault => "1";
 
 class ModelControllers {
   final GlobalKey<FormState> formKey;
-  final TextEditingController currency;
 
   final TextEditingController name;
   final TextEditingController quantity;
@@ -203,8 +217,7 @@ class ModelControllers {
   final TextEditingController fixPrice;
 
   bool get isModified {
-    return currency.text != modelControllerCurrencyDefault ||
-        name.text.isNotEmpty ||
+    return name.text.isNotEmpty ||
         quantity.text != modelControllerQuantityDefault ||
         description.text.isNotEmpty ||
         filaments.isNotEmpty ||
@@ -225,9 +238,6 @@ class ModelControllers {
     String? margin,
     String? fixPrice,
   }) : formKey = GlobalKey<FormState>(),
-       currency = TextEditingController(
-         text: currency ?? modelControllerCurrencyDefault,
-       ),
 
        name = TextEditingController(text: name),
        quantity = TextEditingController(
@@ -246,9 +256,7 @@ class ModelControllers {
 
   ModelControllers.fromJson(Map<String, dynamic> json)
     : formKey = GlobalKey<FormState>(),
-      currency = TextEditingController(
-        text: json["currency"]?.toString() ?? modelControllerCurrencyDefault,
-      ),
+
       name = TextEditingController(text: json["name"]?.toString()),
       quantity = TextEditingController(
         text: (json["quantity"] ?? modelControllerQuantityDefault).toString(),
@@ -279,9 +287,6 @@ class ModelControllers {
   String toString() {
     return jsonEncode(
       {
-        "currency": currency.text.orNullOnDefault(
-          modelControllerCurrencyDefault,
-        ),
         "name": name.text.orNull,
         "quantity": int.tryParse(
           quantity.text.orNullOnDefault(modelControllerQuantityDefault) ?? "",

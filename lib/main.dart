@@ -7,9 +7,9 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_web_plugins/url_strategy.dart';
+import 'package:get_time_ago/get_time_ago.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
 import 'package:package_info_plus/package_info_plus.dart';
-import 'package:relative_time/relative_time.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:universal_web/web.dart' as web;
 import 'package:url_launcher/url_launcher.dart';
@@ -18,8 +18,10 @@ import 'bookmark.dart';
 import 'calculation.dart';
 import 'display.dart';
 import 'extensions.dart';
+import 'l10n/app_localizations.dart';
 import 'main.gr.dart';
 import 'model.dart';
+import 'notice.dart';
 import 'toolbar.dart';
 import 'widgets.dart';
 
@@ -109,7 +111,13 @@ class _MainAppState extends State<MainApp> {
         );
 
         return MaterialApp.router(
+          title:
+              data.printoutTitle == null
+                  ? "CalcPrint"
+                  : "${data.printoutTitle} – CalcPrint",
           routerConfig: _appRouter.config(),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
           themeMode: ThemeMode.system,
           theme: themeLight,
           darkTheme: themeDark,
@@ -356,7 +364,7 @@ class _HomeScreenState extends State<HomeScreen> {
     ),
     SizedBox(height: 4),
 
-    SizedBox(height: 12),
+    SizedBox(height: kIsWeb ? 12 : 16),
   ];
 
   @override
@@ -425,6 +433,8 @@ class _HomeScreenState extends State<HomeScreen> {
                         () => launchUrl(
                           Uri.parse("https://github.com/JHubi1/calcprint"),
                         ),
+                    onLongPress:
+                        () => showNoticeDialog(context, doNavigatorPop: true),
                   ),
                 ],
               );
@@ -439,7 +449,46 @@ class _HomeScreenState extends State<HomeScreen> {
       mainAxisSize: MainAxisSize.max,
       children: [
         if (Display.from(context).moreEqualTablet) ...[
-          Expanded(child: Center(child: CalculationTable())),
+          Expanded(
+            child: Stack(
+              children: [
+                Center(child: CalculationTable()),
+                SizedBox(
+                  width: double.infinity,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.max,
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.all(8),
+                        child: AnimatedSize(
+                          duration: Duration(milliseconds: 250),
+                          curve: Curves.fastEaseInToSlowEaseOut,
+                          alignment: Alignment.centerLeft,
+                          child: SizedBox(
+                            width: data.isModified ? null : 0,
+                            child: SizedBox(
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  ToolbarButtonBookmark(),
+                                  ToolbarButtonReset(
+                                    onUpdate: () => setState(() {}),
+                                  ),
+                                  ToolbarButtonShare(),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
           VerticalDivider(width: 0),
         ],
 
@@ -466,7 +515,19 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       key: _scaffoldKey,
       extendBodyBehindAppBar: appBarDesktop,
-      appBar: Display.from(context).moreEqualTablet ? appBar : null,
+      appBar:
+          Display.from(context).moreEqualTablet
+              ? appBar
+              // this is a pretty hacky workaround, but AnnotatedRegion doesn't
+              // seem to do anything and otherwise the icons are always white in
+              // the status bar (on android at least)
+              : AppBar(
+                toolbarHeight: 0,
+                backgroundColor: Colors.transparent,
+                elevation: 0,
+                scrolledUnderElevation: 0,
+                systemOverlayStyle: SystemUiOverlayStyle.dark,
+              ),
       body: Center(
         child: ConstrainedBox(
           constraints:
@@ -486,20 +547,37 @@ class _HomeScreenState extends State<HomeScreen> {
           if (mounted) setState(() {});
         },
       ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.endContained,
-      bottomNavigationBar:
+      floatingActionButtonLocation:
           Display.from(context).isPhone
-              ? BottomAppBar(
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    ToolbarButtonBookmark(),
-                    ToolbarButtonReset(onUpdate: () => setState(() {})),
-                    ToolbarButtonShare(),
-                  ],
-                ),
-              )
+              ? FloatingActionButtonLocation.endContained
               : null,
+      bottomNavigationBar: Container(
+        color: Theme.of(context).colorScheme.surfaceContainer,
+        child: AnimatedSize(
+          duration: Duration(milliseconds: 250),
+          curve:
+              data.isModified
+                  ? Curves.fastEaseInToSlowEaseOut
+                  : Curves.fastEaseInToSlowEaseOut.flipped,
+          alignment: Alignment.topCenter,
+          child:
+              Display.from(context).isPhone && data.isModified
+                  ? BottomAppBar(
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        ToolbarButtonBookmark(),
+                        ToolbarButtonReset(onUpdate: () => setState(() {})),
+                        ToolbarButtonShare(),
+                      ],
+                    ),
+                  )
+                  : Container(
+                    height: 0,
+                    color: Theme.of(context).colorScheme.surfaceContainer,
+                  ),
+        ),
+      ),
       floatingActionButton:
           Display.from(context).isPhone
               ? _HomeScreenFab(
@@ -573,7 +651,11 @@ class _HomeScreenDrawerState extends State<_HomeScreenDrawer> {
                 direction: DismissDirection.startToEnd,
                 child: ListTile(
                   style: ListTileStyle.drawer,
-                  title: Text(bookmarkParsed["printoutTitle"] ?? "Untitled"),
+                  title: Text(
+                    bookmarkParsed["printoutTitle"] ?? "Untitled",
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                   subtitle:
                       (bookmarkParsed["printoutFrom"] != null ||
                               bookmarkParsed["printoutTo"] != null ||
@@ -596,34 +678,26 @@ class _HomeScreenDrawerState extends State<_HomeScreenDrawer> {
                                     "\nModels: ${List<Map>.from(bookmarkParsed["models"]).map((e) => "“${e["name"]}”").join(", ")}";
                               }
 
-                              return Text(tmp, maxLines: 2);
+                              return Text(
+                                tmp.trim(),
+                                softWrap: true,
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                              );
                             },
                           )
                           : null,
-                  trailing: Container(
-                    padding: EdgeInsets.symmetric(
-                      vertical:
-                          2 *
-                          (ListTileTheme.of(context).minVerticalPadding ?? 4),
-                    ),
-                    constraints: BoxConstraints(
-                      maxWidth: MediaQuery.sizeOf(context).width / 3,
-                    ),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.max,
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        Expanded(
-                          child: Text(
-                            softWrap: true,
-                            overflow: TextOverflow.fade,
-                            RelativeTime.locale(
-                              const Locale("en"),
-                            ).format(bookmark.date),
-                          ),
-                        ),
-                      ],
+                  trailing: ConstrainedBox(
+                    constraints: BoxConstraints(maxWidth: 64),
+                    child: Text(
+                      GetTimeAgo.parse(
+                        bookmark.date,
+                        locale: AppLocalizations.of(context).localeName,
+                      ),
+                      textAlign: TextAlign.end,
+                      softWrap: true,
+                      maxLines: 3,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
                   onTap: () {
@@ -659,7 +733,7 @@ class _HomeScreenFab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return FloatingActionButton(
-      elevation: 0,
+      elevation: data.isModified ? 0 : null,
       onPressed:
           () => showModalBottomSheet(
             context: context,

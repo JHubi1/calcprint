@@ -2,6 +2,15 @@ name: Building
 on:
   push:
     branches: [main]
+    paths:
+      - lib/**
+      - pubspec.yaml
+      - assets/data/**
+      - web/**
+      - LICENSE
+      - NOTICE
+      - makefile
+      - .github/workflows/build.yml
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -13,7 +22,9 @@ jobs:
           flutter-version-file: pubspec.yaml
           cache: true
       # - run: flutter pub get
-      - run: make buildWeb
+      - run: |
+          flutter config --disable-analytics --no-cli-animations
+          make buildWeb
       - id: deployment
         uses: actions/upload-pages-artifact@v3
         with:
