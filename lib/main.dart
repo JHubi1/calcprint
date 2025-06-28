@@ -460,25 +460,22 @@ class _HomeScreenState extends State<HomeScreen> {
                     mainAxisAlignment: MainAxisAlignment.end,
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
-                      Padding(
-                        padding: const EdgeInsets.all(8),
-                        child: AnimatedSize(
+                      ClipRRect(
+                        child: AnimatedSlide(
+                          offset: Offset(data.isModified ? 0 : 1, 0),
                           duration: Duration(milliseconds: 250),
                           curve: Curves.fastEaseInToSlowEaseOut,
-                          alignment: Alignment.centerLeft,
-                          child: SizedBox(
-                            width: data.isModified ? null : 0,
-                            child: SizedBox(
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  ToolbarButtonBookmark(),
-                                  ToolbarButtonReset(
-                                    onUpdate: () => setState(() {}),
-                                  ),
-                                  ToolbarButtonShare(),
-                                ],
-                              ),
+                          child: Padding(
+                            padding: const EdgeInsets.all(8),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                ToolbarButtonBookmark(),
+                                ToolbarButtonReset(
+                                  onUpdate: () => setState(() {}),
+                                ),
+                                ToolbarButtonShare(),
+                              ],
                             ),
                           ),
                         ),
@@ -489,7 +486,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ],
             ),
           ),
-          VerticalDivider(width: 0),
+          VerticalDivider(width: 1),
         ],
 
         Expanded(
@@ -627,17 +624,23 @@ class _HomeScreenDrawerState extends State<_HomeScreenDrawer> {
           children: [
             ListTileHeader(child: Text("Bookmarks")),
 
-            if (_bookmarks.getBookmarkCount() == 0)
-              ListTile(
-                style: ListTileStyle.drawer,
-                title: Text(
-                  "No stored bookmarks.",
-                  style: TextStyle(
-                    fontStyle: FontStyle.italic,
-                    color: Theme.of(context).disabledColor,
-                  ),
-                ),
-              ),
+            AnimatedSwitcher(
+              duration: Duration(milliseconds: 250),
+              switchInCurve: Curves.fastEaseInToSlowEaseOut,
+              child:
+                  (_bookmarks.getBookmarkCount() == 0)
+                      ? ListTile(
+                        style: ListTileStyle.drawer,
+                        title: Text(
+                          "No stored bookmarks.",
+                          style: TextStyle(
+                            fontStyle: FontStyle.italic,
+                            color: Theme.of(context).disabledColor,
+                          ),
+                        ),
+                      )
+                      : null,
+            ),
             ...List.generate(_bookmarks.getBookmarkCount(), (index) {
               final bookmark =
                   _bookmarks.getBookmarkAt(index) ?? bookmarkRecordEmpty;

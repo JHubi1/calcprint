@@ -22,7 +22,8 @@ jobs:
           flutter-version-file: pubspec.yaml
           cache: true
       # - run: flutter pub get
-      - run: |
+      - name: Building
+        run: |
           flutter config --disable-analytics --no-cli-animations
           make buildWeb
       - id: deployment

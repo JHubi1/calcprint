@@ -226,6 +226,7 @@ class _ModelFormState extends State<ModelForm> {
           dataStoreCurrenciesDefault
               .map((e) => DropdownMenuEntry(value: e, label: e))
               .toList(),
+      onSelected: (_) => render(),
     ),
   );
 

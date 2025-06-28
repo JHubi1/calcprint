@@ -157,6 +157,8 @@ class ToolbarButtonShare extends StatelessWidget {
                 child: Center(
                   heightFactor: 1,
                   child: InkWell(
+                    hoverColor: Colors.transparent,
+                    borderRadius: BorderRadius.circular(6),
                     onLongPress: () async {
                       SharePlus.instance.share(
                         ShareParams(

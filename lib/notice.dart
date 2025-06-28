@@ -1,9 +1,9 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
 import 'package:url_launcher/url_launcher.dart';
-
-import 'extensions.dart';
 
 final _report = Uri.parse("https://github.com/JHubi1/calcprint/issues/new");
 final _replacementText = """CalcPrint
@@ -18,6 +18,118 @@ NOTICE file. If no action is taken, you're kindly asked to report this under
 the following URL:
 
 > ${_report.toString()}""";
+
+class NoticeDialog extends StatefulWidget {
+  String? preloadedNoticeText;
+  bool? preloadedReportError;
+
+  NoticeDialog({
+    super.key,
+    this.preloadedNoticeText,
+    this.preloadedReportError,
+  });
+
+  @override
+  State<NoticeDialog> createState() => _NoticeDialogState();
+}
+
+class _NoticeDialogState extends State<NoticeDialog> {
+  String noticeText = "";
+  bool reportError = false;
+  bool copyAnimation = false;
+
+  @override
+  void initState() {
+    super.initState();
+
+    if (widget.preloadedNoticeText != null) {
+      noticeText = widget.preloadedNoticeText!;
+      reportError = widget.preloadedReportError ?? false;
+    } else {
+      rootBundle
+          .loadString("NOTICE")
+          .then((value) {
+            noticeText = value.trim();
+            if (mounted) setState(() {});
+          })
+          .onError((_, _) {
+            noticeText = _replacementText;
+            reportError = true;
+            if (mounted) setState(() {});
+          });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return PopScope(
+      onPopInvokedWithResult: (didPop, _) {
+        if (didPop) copyAnimation = false;
+      },
+      child: AlertDialog(
+        title: Text("Notice"),
+        content: Stack(
+          children: [
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: SelectableText(
+                noticeText,
+                style: TextStyle(fontFamily: "NotoSansMono"),
+              ),
+            ),
+            Container(
+              alignment: Alignment.topRight,
+              width: double.infinity,
+              child: Transform.translate(
+                offset: Offset(8, -8),
+                child: IconButton(
+                  onPressed: () async {
+                    if (copyAnimation) return;
+
+                    await Clipboard.setData(ClipboardData(text: noticeText));
+                    setState(() {
+                      copyAnimation = true;
+                    });
+
+                    await Future.delayed(Duration(seconds: 1));
+                    copyAnimation = false;
+                    if (mounted) setState(() {});
+                  },
+                  icon: AnimatedSwitcher(
+                    duration: Duration(milliseconds: 250),
+                    switchInCurve: Curves.fastEaseInToSlowEaseOut,
+                    switchOutCurve: Curves.fastEaseInToSlowEaseOut.flipped,
+                    child:
+                        copyAnimation
+                            ? Icon(key: Key("done"), Symbols.check)
+                            : Icon(key: Key("copy"), Symbols.content_copy),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          if (reportError)
+            FilledButton.icon(
+              onPressed: () => launchUrl(_report),
+              label: Text("Report"),
+              icon: Icon(Symbols.flag, fill: 1),
+              style: FilledButton.styleFrom(
+                foregroundColor: Theme.of(context).colorScheme.onError,
+                backgroundColor: Theme.of(context).colorScheme.error,
+              ),
+            ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text("Close"),
+          ),
+        ],
+        scrollable: true,
+      ),
+    );
+  }
+}
 
 void showNoticeDialog(
   BuildContext context, {
@@ -38,49 +150,9 @@ void showNoticeDialog(
   showDialog(
     context: context,
     builder:
-        (context) => AlertDialog(
-          title: Text("Notice"),
-          content: Stack(
-            children: [
-              SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: SelectableText(
-                  noticeText,
-                  style: TextStyle(fontFamily: "NotoSansMono"),
-                ),
-              ),
-              Container(
-                alignment: Alignment.topRight,
-                width: double.infinity,
-                child: Transform.translate(
-                  offset: Offset(8, -8),
-                  child: IconButton(
-                    onPressed:
-                        () =>
-                            Clipboard.setData(ClipboardData(text: noticeText)),
-                    icon: Icon(Symbols.content_copy),
-                  ),
-                ),
-              ),
-            ],
-          ),
-          actions: [
-            if (reportError)
-              FilledButton.icon(
-                onPressed: () => launchUrl(_report),
-                label: Text("Report"),
-                icon: Icon(Symbols.flag, fill: 1),
-                style: FilledButton.styleFrom(
-                  foregroundColor: Theme.of(context).colorScheme.onError,
-                  backgroundColor: Theme.of(context).colorScheme.error,
-                ),
-              ),
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: Text("Close"),
-            ),
-          ],
-          scrollable: true,
+        (_) => NoticeDialog(
+          preloadedNoticeText: noticeText,
+          preloadedReportError: reportError,
         ),
   );
 }
