@@ -20,10 +20,10 @@ the following URL:
 > ${_report.toString()}""";
 
 class NoticeDialog extends StatefulWidget {
-  String? preloadedNoticeText;
-  bool? preloadedReportError;
+  final String? preloadedNoticeText;
+  final bool? preloadedReportError;
 
-  NoticeDialog({
+  const NoticeDialog({
     super.key,
     this.preloadedNoticeText,
     this.preloadedReportError,

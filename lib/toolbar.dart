@@ -104,7 +104,7 @@ class _ToolbarButtonResetState extends State<ToolbarButtonReset> {
             action: SnackBarAction(
               label: "Undo",
               onPressed: () {
-                if (!data.isModified) {
+                if (!data.isModified && mounted) {
                   setState(() {
                     final tmp = jsonDecode(oldModels) as Map<String, dynamic>;
                     DataStore.newInstanceWith(

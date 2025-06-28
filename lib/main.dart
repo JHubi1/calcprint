@@ -162,19 +162,19 @@ class _HomeScreenState extends State<HomeScreen> {
       models: widget.models,
     );
     data.reportUrlToPlatform();
+    data.addListener(render);
     super.initState();
   }
 
-  void render(_, [bool validateModels = false]) {
-    setState(() {});
-    _formKey.currentState?.validate();
-    data.reportUrlToPlatform();
+  @override
+  void dispose() {
+    super.dispose();
+    data.removeListener(render);
+  }
 
-    if (validateModels) {
-      for (final model in data.models) {
-        model.formKey.currentState?.validate();
-      }
-    }
+  void render() {
+    data.reportUrlToPlatform();
+    if (mounted) setState(() {});
   }
 
   List<Widget> get _formFields => [
@@ -210,6 +210,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 "Wobbly Chess Knight",
               ][seed],
         ),
+        autovalidateMode: AutovalidateMode.always,
         validator: (value) {
           if (value?.isEmpty ?? true) return null;
           if (value!.length < 3) {
@@ -217,7 +218,6 @@ class _HomeScreenState extends State<HomeScreen> {
           }
           return null;
         },
-        onChanged: render,
       ),
     ),
     ListTilePadding(
@@ -235,7 +235,6 @@ class _HomeScreenState extends State<HomeScreen> {
                 helperText: "The person printing the print.",
                 hintText: "You",
               ),
-              onChanged: render,
             ),
           ),
           SizedBox(width: 8),
@@ -250,7 +249,6 @@ class _HomeScreenState extends State<HomeScreen> {
                 helperText: "The recipient of the printout.",
                 hintText: "The Boss",
               ),
-              onChanged: render,
             ),
           ),
         ],
@@ -317,8 +315,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 if (!data.isModelsModified) {
                                   setState(() {
                                     data.models = oldModels;
-                                    render(null, true);
-                                    data.reportUrlToPlatform();
+                                    render();
                                   });
                                 }
                                 ScaffoldMessenger.of(
@@ -349,7 +346,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 .map(
                   (model) => ModelForm(
                     model: model,
-                    onRender: () => render(null),
+                    onRender: render,
                     onRemove:
                         (data.models.length == 1)
                             ? null
@@ -548,33 +545,37 @@ class _HomeScreenState extends State<HomeScreen> {
           Display.from(context).isPhone
               ? FloatingActionButtonLocation.endContained
               : null,
-      bottomNavigationBar: Container(
-        color: Theme.of(context).colorScheme.surfaceContainer,
-        child: AnimatedSize(
-          duration: Duration(milliseconds: 250),
-          curve:
-              data.isModified
-                  ? Curves.fastEaseInToSlowEaseOut
-                  : Curves.fastEaseInToSlowEaseOut.flipped,
-          alignment: Alignment.topCenter,
-          child:
-              Display.from(context).isPhone && data.isModified
-                  ? BottomAppBar(
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        ToolbarButtonBookmark(),
-                        ToolbarButtonReset(onUpdate: () => setState(() {})),
-                        ToolbarButtonShare(),
-                      ],
+      bottomNavigationBar:
+          Display.from(context).isPhone
+              ? Container(
+                color: Theme.of(context).colorScheme.surfaceContainer,
+                child: AnimatedSize(
+                  duration: Duration(milliseconds: 250),
+                  curve:
+                      data.isModified
+                          ? Curves.fastEaseInToSlowEaseOut
+                          : Curves.fastEaseInToSlowEaseOut.flipped,
+                  alignment: Alignment.topCenter,
+                  child: Container(
+                    height: data.isModified ? null : 0,
+                    padding:
+                        data.isModified
+                            ? null
+                            : EdgeInsets.only(top: 8, bottom: 8),
+                    child: BottomAppBar(
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          ToolbarButtonBookmark(),
+                          ToolbarButtonReset(onUpdate: () => setState(() {})),
+                          ToolbarButtonShare(),
+                        ],
+                      ),
                     ),
-                  )
-                  : Container(
-                    height: 0,
-                    color: Theme.of(context).colorScheme.surfaceContainer,
                   ),
-        ),
-      ),
+                ),
+              )
+              : null,
       floatingActionButton:
           Display.from(context).isPhone
               ? _HomeScreenFab(
@@ -654,6 +655,7 @@ class _HomeScreenDrawerState extends State<_HomeScreenDrawer> {
                 direction: DismissDirection.startToEnd,
                 child: ListTile(
                   style: ListTileStyle.drawer,
+                  isThreeLine: true,
                   title: Text(
                     bookmarkParsed["printoutTitle"] ?? "Untitled",
                     maxLines: 1,
@@ -666,16 +668,19 @@ class _HomeScreenDrawerState extends State<_HomeScreenDrawer> {
                           ? Builder(
                             builder: (context) {
                               var tmp = "";
-                              if (bookmarkParsed["printoutFrom"] != null &&
-                                  bookmarkParsed["printoutTo"] != null) {
-                                tmp =
-                                    "From: ${bookmarkParsed["printoutFrom"]} – To: ${bookmarkParsed["printoutTo"]}";
-                              } else if (bookmarkParsed["printoutFrom"] !=
-                                  null) {
-                                tmp = "From: ${bookmarkParsed["printoutFrom"]}";
-                              } else if (bookmarkParsed["printoutTo"] != null) {
-                                tmp = "To: ${bookmarkParsed["printoutTo"]}";
+                              final parts = [];
+                              if (bookmarkParsed["printoutFrom"] != null) {
+                                parts.add(
+                                  "From: ${bookmarkParsed["printoutFrom"]}",
+                                );
                               }
+                              if (bookmarkParsed["printoutTo"] != null) {
+                                parts.add(
+                                  "To: ${bookmarkParsed["printoutTo"]}",
+                                );
+                              }
+                              tmp += parts.join(" – ");
+
                               if (bookmarkParsed["models"] != null) {
                                 tmp +=
                                     "\nModels: ${List<Map>.from(bookmarkParsed["models"]).map((e) => "“${e["name"]}”").join(", ")}";
@@ -684,7 +689,7 @@ class _HomeScreenDrawerState extends State<_HomeScreenDrawer> {
                               return Text(
                                 tmp.trim(),
                                 softWrap: true,
-                                maxLines: 2,
+                                maxLines: 3,
                                 overflow: TextOverflow.ellipsis,
                               );
                             },
@@ -748,20 +753,7 @@ class _HomeScreenFab extends StatelessWidget {
                     heightFactor: 1,
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Builder(
-                          builder: (_) {
-                            return InkWell(
-                              onTap:
-                                  () async => await Clipboard.setData(
-                                    ClipboardData(text: url.toString()),
-                                  ),
-                              child: Text(url.toString()),
-                            );
-                          },
-                        ),
-                        calculationTable,
-                      ],
+                      children: [calculationTable],
                     ),
                   ),
                 ),

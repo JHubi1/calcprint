@@ -11,7 +11,7 @@ DataStore get data => DataStore.instance;
 final List<String> dataStoreCurrenciesDefault = ["€", r"$", "£", "¥"];
 final String dataStoreCurrencyDefault = dataStoreCurrenciesDefault.elementAt(1);
 
-class DataStore {
+class DataStore extends ChangeNotifier {
   final TextEditingController printoutTitleController;
   String? get printoutTitle => printoutTitleController.text.orNull;
 
@@ -52,7 +52,12 @@ class DataStore {
     required this.printoutKeepPrivateRaw,
     required this.models,
     required this.currency,
-  });
+  }) {
+    printoutTitleController.addListener(notifyListeners);
+    printoutFromController.addListener(notifyListeners);
+    printoutToController.addListener(notifyListeners);
+    currency.addListener(notifyListeners);
+  }
 
   static DataStore get _default => DataStore._(
     printoutTitleController: TextEditingController(),
@@ -142,17 +147,23 @@ class DataStore {
 
 class Filament {}
 
-class ModelFilamentControllers {
+class ModelFilamentControllers extends ChangeNotifier {
   final TextEditingController weight;
   final TextEditingController filament;
 
   ModelFilamentControllers()
     : weight = TextEditingController(),
-      filament = TextEditingController();
+      filament = TextEditingController() {
+    weight.addListener(notifyListeners);
+    filament.addListener(notifyListeners);
+  }
 
   ModelFilamentControllers.fromJson(Map<String, dynamic> json)
     : weight = TextEditingController(text: json["weight"]?.toString()),
-      filament = TextEditingController(text: json["filament"]?.toString());
+      filament = TextEditingController(text: json["filament"]?.toString()) {
+    weight.addListener(notifyListeners);
+    filament.addListener(notifyListeners);
+  }
 
   @override
   String toString() {
@@ -163,7 +174,7 @@ class ModelFilamentControllers {
   }
 }
 
-class ModelAdditionControllers {
+class ModelAdditionControllers extends ChangeNotifier {
   final TextEditingController name;
   final TextEditingController description;
   final TextEditingController quantity;
@@ -173,7 +184,12 @@ class ModelAdditionControllers {
     : name = TextEditingController(),
       description = TextEditingController(),
       quantity = TextEditingController(),
-      fixPrice = TextEditingController();
+      fixPrice = TextEditingController() {
+    name.addListener(notifyListeners);
+    description.addListener(notifyListeners);
+    quantity.addListener(notifyListeners);
+    fixPrice.addListener(notifyListeners);
+  }
 
   ModelAdditionControllers.fromJson(Map<String, dynamic> json)
     : name = TextEditingController(text: json["name"]?.toString()),
@@ -183,7 +199,12 @@ class ModelAdditionControllers {
       quantity = TextEditingController(
         text: (json["quantity"] ?? modelControllerQuantityDefault).toString(),
       ),
-      fixPrice = TextEditingController(text: json["fixPrice"]?.toString());
+      fixPrice = TextEditingController(text: json["fixPrice"]?.toString()) {
+    name.addListener(notifyListeners);
+    description.addListener(notifyListeners);
+    quantity.addListener(notifyListeners);
+    fixPrice.addListener(notifyListeners);
+  }
 
   @override
   String toString() {
@@ -200,7 +221,7 @@ class ModelAdditionControllers {
 
 String get modelControllerQuantityDefault => "1";
 
-class ModelControllers {
+class ModelControllers extends ChangeNotifier {
   final GlobalKey<FormState> formKey;
 
   final TextEditingController name;
@@ -252,7 +273,15 @@ class ModelControllers {
        hourlyRate = TextEditingController(text: hourlyRate),
 
        margin = TextEditingController(text: margin),
-       fixPrice = TextEditingController(text: fixPrice);
+       fixPrice = TextEditingController(text: fixPrice) {
+    this.name.addListener(notifyListeners);
+    this.quantity.addListener(notifyListeners);
+    this.description.addListener(notifyListeners);
+    this.time.addListener(notifyListeners);
+    this.hourlyRate.addListener(notifyListeners);
+    this.margin.addListener(notifyListeners);
+    this.fixPrice.addListener(notifyListeners);
+  }
 
   ModelControllers.fromJson(Map<String, dynamic> json)
     : formKey = GlobalKey<FormState>(),
@@ -281,7 +310,15 @@ class ModelControllers {
       hourlyRate = TextEditingController(text: json["hourlyRate"]?.toString()),
 
       margin = TextEditingController(text: json["margin"]?.toString()),
-      fixPrice = TextEditingController(text: json["fixPrice"]?.toString());
+      fixPrice = TextEditingController(text: json["fixPrice"]?.toString()) {
+    name.addListener(notifyListeners);
+    quantity.addListener(notifyListeners);
+    description.addListener(notifyListeners);
+    time.addListener(notifyListeners);
+    hourlyRate.addListener(notifyListeners);
+    margin.addListener(notifyListeners);
+    fixPrice.addListener(notifyListeners);
+  }
 
   @override
   String toString() {

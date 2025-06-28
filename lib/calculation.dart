@@ -1,10 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
 
 import 'extensions.dart';
 import 'main.dart';
 import 'model.dart';
 import 'widgets.dart';
+
+final _regexTime = RegExp(r"^(?:(?<h>\d+)\:)?(?<m>\d+)$");
+final _regexTimePerfect = RegExp(r"^(?<h>\d{2,})\:(?<m>\d{2})$");
+
+final _numFormatCurrency = NumberFormat.currency(
+  symbol: data.currencyTextOrDefault,
+);
 
 class CalculationTableDivider extends StatelessWidget {
   const CalculationTableDivider({super.key});
@@ -20,76 +28,305 @@ class CalculationTableDivider extends StatelessWidget {
 
 class CalculationModel extends StatelessWidget {
   final ModelControllers model;
+  final bool paddingTop;
+  final bool paddingBottom;
 
-  const CalculationModel({super.key, required this.model});
+  const CalculationModel({
+    super.key,
+    required this.model,
+    required this.paddingTop,
+    required this.paddingBottom,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        ListTile(
-          title: Text(model.name.text.orNull ?? "Untitled Model", maxLines: 1),
-          subtitle: ListTile(
-            contentPadding: EdgeInsets.zero,
-            minTileHeight: 0,
-            minVerticalPadding: 0,
-            title:
-                (model.description.text.orNull != null)
-                    ? Text(
-                      model.description.text,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: Theme.of(context).textTheme.bodyMedium!.copyWith(
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                      ),
-                    )
-                    : null,
-            subtitle: Text("data"),
+    final contentTextStyle = Theme.of(context).textTheme.bodyMedium!.copyWith(
+      color: Theme.of(context).colorScheme.onSurfaceVariant,
+    );
+
+    final fields = <String, String>{};
+    final separators = <int>{};
+    bool strikethroughValues = false;
+
+    if (model.time.text.isNotEmpty) {
+      final parsed = calculatePartTime(
+        model.time.text,
+        hourlyRate: model.hourlyRate.text,
+      );
+      if (parsed.valid) {
+        fields.addAll({
+          "Spend Time (${parsed.time})": _numFormatCurrency.format(
+            parsed.price,
           ),
-          titleAlignment: ListTileTitleAlignment.top,
-          trailing: Padding(
-            padding: EdgeInsets.only(
-              top: 2 * (ListTileTheme.of(context).minVerticalPadding ?? 4),
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Flexible(
-                      child: Padding(
-                        padding: const EdgeInsets.only(right: 8),
-                        child: Text(
-                          "${model.quantity.text.orNull ?? modelControllerQuantityDefault}x",
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                    ),
-                    Flexible(
+        });
+      }
+    }
+    if (model.margin.text.isNotEmpty) {
+      final parsed = calculatePartMargin(
+        model.margin.text,
+        calculatePrice(
+          model,
+          quantityOne: true,
+          ignoreMargin: true,
+          ignoreFixPrice: true,
+        ),
+      );
+      if (parsed.valid) {
+        fields.addAll({
+          "Price Margin (${parsed.percent})": _numFormatCurrency.format(
+            parsed.marginAmount,
+          ),
+        });
+      }
+    }
+
+    if (model.fixPrice.text.isNotEmpty) {
+      final fixPrice = double.tryParse(
+        model.fixPrice.text.replaceAll(
+          NumberFormat.decimalPattern().symbols.DECIMAL_SEP,
+          ".",
+        ),
+      );
+      if (fixPrice != null && fixPrice > 0) {
+        strikethroughValues = true;
+        separators.add(fields.length);
+        fields.addAll({"Fix Price": _numFormatCurrency.format(fixPrice)});
+      }
+    }
+
+    return Padding(
+      padding: EdgeInsets.only(
+        top: paddingTop ? 8 : 0,
+        bottom: paddingBottom ? 8 : 0,
+      ),
+      child: ListTile(
+        minTileHeight:
+            model.description.text.isEmpty && fields.isEmpty ? 0 : null,
+        minVerticalPadding:
+            model.description.text.isEmpty && fields.isEmpty ? 0 : null,
+        title: Text(model.name.text.orNull ?? "Untitled Model", maxLines: 1),
+        subtitle:
+            (model.description.text.isNotEmpty || fields.isNotEmpty)
+                ? ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  minTileHeight: 0,
+                  minVerticalPadding: 0,
+                  title:
+                      (model.description.text.orNull != null)
+                          ? Text(
+                            model.description.text,
+                            maxLines: 3,
+                            overflow: TextOverflow.ellipsis,
+                            style: contentTextStyle,
+                          )
+                          : null,
+                  subtitle:
+                      (data.printoutKeepPrivate ?? false)
+                          ? null
+                          : Builder(
+                            builder: (context) {
+                              return Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: List.generate(fields.length, (index) {
+                                  final pair = fields.entries.elementAt(index);
+                                  final titleMain =
+                                      pair.key.split("(").first.trim();
+                                  final titleSub =
+                                      pair.key.split("(").length > 1
+                                          ? pair.key.split("(").last.trim()
+                                          : null;
+
+                                  return ListTile(
+                                    contentPadding: EdgeInsets.only(
+                                      top:
+                                          ((index == 0 &&
+                                                      model
+                                                          .description
+                                                          .text
+                                                          .isNotEmpty) ||
+                                                  separators.contains(index))
+                                              ? 4
+                                              : 0,
+                                    ),
+                                    minTileHeight: 0,
+                                    minVerticalPadding: 0,
+                                    title: Text.rich(
+                                      TextSpan(
+                                        text: "$titleMain ",
+                                        style: contentTextStyle,
+                                        children:
+                                            titleSub != null
+                                                ? [
+                                                  TextSpan(
+                                                    text: "($titleSub",
+                                                    style: Theme.of(context)
+                                                        .textTheme
+                                                        .labelSmall!
+                                                        .copyWith(
+                                                          color:
+                                                              Theme.of(context)
+                                                                  .colorScheme
+                                                                  .onSurfaceVariant,
+                                                        ),
+                                                  ),
+                                                ]
+                                                : null,
+                                      ),
+                                    ),
+                                    trailing: Text(
+                                      pair.value,
+                                      style:
+                                          (strikethroughValues &&
+                                                  index != fields.length - 1)
+                                              ? Theme.of(
+                                                context,
+                                              ).textTheme.labelSmall!.copyWith(
+                                                color:
+                                                    Theme.of(
+                                                      context,
+                                                    ).disabledColor,
+                                                fontStyle: FontStyle.italic,
+                                                decoration:
+                                                    TextDecoration.lineThrough,
+                                                decorationColor:
+                                                    Theme.of(
+                                                      context,
+                                                    ).disabledColor,
+                                                decorationThickness: 2,
+                                              )
+                                              : null,
+                                    ),
+                                  );
+                                }),
+                              );
+                            },
+                          ),
+                )
+                : null,
+        titleAlignment: ListTileTitleAlignment.top,
+        trailing: Padding(
+          padding: EdgeInsets.only(
+            top: ListTileTheme.of(context).minVerticalPadding ?? 4,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Flexible(
+                    child: Padding(
+                      padding: const EdgeInsets.only(right: 8),
                       child: Text(
-                        "${data.currencyTextOrDefault}${calculatePrice(model).toStringAsFixed(2)}",
-                        style: TextStyle(fontWeight: FontWeight.bold),
+                        "${model.quantity.text.orNull ?? modelControllerQuantityDefault}x",
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
-                  ],
-                ),
-              ],
-            ),
+                  ),
+                  Flexible(
+                    child: Text(
+                      _numFormatCurrency.format(
+                        calculatePrice(model, quantityOne: true),
+                      ),
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
+              ),
+            ],
           ),
         ),
-      ],
+      ),
     );
   }
 
-  static double calculatePrice(ModelControllers model) {
-    // TODO: implement this
-    return (int.tryParse(model.quantity.text) ?? 1) *
-        (double.tryParse(model.fixPrice.text) ?? 0);
+  static ({bool valid, double price, String time}) calculatePartTime(
+    String source, {
+    required String hourlyRate,
+  }) {
+    final matches = _regexTime.allMatches(source);
+    if (matches.length == 1) {
+      final totalMinutes =
+          (int.tryParse(matches.first.namedGroup("m")!) ?? 0) +
+          (int.tryParse(matches.first.namedGroup("h") ?? "0") ?? 0) * 60;
+      final minutes = totalMinutes % Duration.minutesPerHour;
+      final hours = (totalMinutes - minutes) ~/ Duration.minutesPerHour;
+
+      final relativeHours = (totalMinutes / Duration.minutesPerHour);
+      final rate =
+          double.tryParse(
+            hourlyRate.replaceAll(
+              NumberFormat.decimalPattern().symbols.DECIMAL_SEP,
+              ".",
+            ),
+          ) ??
+          0;
+
+      return (
+        valid: true,
+        price: relativeHours * rate,
+        time:
+            "${hours.toString().padLeft(2, "0")}:${minutes.toString().padLeft(2, "0")}",
+      );
+    }
+    return (valid: false, price: 0, time: "");
+  }
+
+  static ({bool valid, double marginAmount, String percent})
+  calculatePartMargin(String source, double other) {
+    final margin = int.tryParse(source);
+    if (margin != null && margin >= 0) {
+      return (
+        valid: true,
+        marginAmount: (margin / 100) * other,
+        percent: "${margin.toString()}%",
+      );
+    }
+    return (valid: false, marginAmount: 0, percent: "");
+  }
+
+  static double calculatePrice(
+    ModelControllers model, {
+    bool quantityOne = false,
+    bool ignoreMargin = false,
+    bool ignoreFixPrice = false,
+  }) {
+    double price = 0;
+
+    final fixedPrice = double.tryParse(
+      model.fixPrice.text.replaceAll(
+        NumberFormat.decimalPattern().symbols.DECIMAL_SEP,
+        ".",
+      ),
+    );
+    if (model.fixPrice.text.isNotEmpty &&
+        fixedPrice != null &&
+        !ignoreFixPrice) {
+      price = fixedPrice;
+    } else {
+      if (model.hourlyRate.text.isNotEmpty) {
+        final parsed = calculatePartTime(
+          model.time.text,
+          hourlyRate: model.hourlyRate.text,
+        );
+        if (parsed.valid) {
+          price += parsed.price;
+        }
+      }
+
+      if (model.margin.text.isNotEmpty && !ignoreMargin) {
+        final parsed = calculatePartMargin(model.margin.text, price);
+        if (parsed.valid) {
+          price += parsed.marginAmount;
+        }
+      }
+    }
+
+    final quantity = quantityOne ? 1 : (int.tryParse(model.quantity.text) ?? 1);
+    return price * quantity;
   }
 }
 
@@ -98,94 +335,130 @@ class CalculationTable extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.all(64),
-      child: AnimatedSize(
-        duration: Duration(milliseconds: 250),
-        curve: Curves.fastEaseInToSlowEaseOut,
-        child: Card.filled(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              ListTileHeader(
-                usePaddingTop:
-                    (data.printoutFrom != null || data.printoutTo != null),
-                child: Text(
-                  data.printoutTitle ?? "Untitled Project",
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-              if (data.printoutFrom != null || data.printoutTo != null)
-                ListTilePadding(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      if (data.printoutFrom != null)
-                        Row(
-                          mainAxisSize: MainAxisSize.max,
-                          children: [
-                            Padding(
-                              padding: const EdgeInsets.only(right: 32),
-                              child: Text("Printer:"),
-                            ),
-                            Expanded(
-                              child: Text(
-                                data.printoutFrom!,
-                                textAlign: TextAlign.end,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                          ],
-                        ),
-                      if (data.printoutTo != null)
-                        Row(
-                          mainAxisSize: MainAxisSize.max,
-                          children: [
-                            Padding(
-                              padding: const EdgeInsets.only(right: 32),
-                              child: Text("Client:"),
-                            ),
-                            Expanded(
-                              child: Text(
-                                data.printoutTo!,
-                                textAlign: TextAlign.end,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                          ],
-                        ),
-                    ],
+    int modelCount = 0;
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return Padding(
+          padding: EdgeInsets.all(constraints.maxWidth >= 500 ? 64 : 32),
+          child: AnimatedSize(
+            duration: Duration(milliseconds: 250),
+            curve: Curves.fastEaseInToSlowEaseOut,
+            child: Card.filled(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Transform.translate(
+                    offset:
+                        (data.printoutFrom != null || data.printoutTo != null)
+                            ? Offset(0, -4)
+                            : Offset(0, 4),
+                    child: ListTileHeader(
+                      usePaddingTop:
+                          (data.printoutFrom != null ||
+                              data.printoutTo != null),
+                      child: Text(
+                        data.printoutTitle ?? "Untitled Project",
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
                   ),
-                ),
+                  if (data.printoutFrom != null || data.printoutTo != null)
+                    Transform.translate(
+                      offset: Offset(
+                        0,
+                        -2 *
+                                (ListTileTheme.of(context).minVerticalPadding ??
+                                    4) -
+                            4,
+                      ),
+                      child: ListTilePadding(
+                        usePaddingTop: false,
+                        usePaddingBottom: false,
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            if (data.printoutFrom != null)
+                              Row(
+                                mainAxisSize: MainAxisSize.max,
+                                children: [
+                                  Padding(
+                                    padding: const EdgeInsets.only(right: 32),
+                                    child: Text("Printer:"),
+                                  ),
+                                  Expanded(
+                                    child: Text(
+                                      data.printoutFrom!,
+                                      textAlign: TextAlign.end,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            if (data.printoutTo != null)
+                              Row(
+                                mainAxisSize: MainAxisSize.max,
+                                children: [
+                                  Padding(
+                                    padding: const EdgeInsets.only(right: 32),
+                                    child: Text("Client:"),
+                                  ),
+                                  Expanded(
+                                    child: Text(
+                                      data.printoutTo!,
+                                      textAlign: TextAlign.end,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  SizedBox(
+                    height:
+                        2 * (ListTileTheme.of(context).minVerticalPadding ?? 4),
+                  ),
 
-              CalculationTableDivider(),
-              ...data.models.map((e) => CalculationModel(model: e)),
-              CalculationTableDivider(),
-
-              ListTile(
-                title: Text("Total"),
-                trailing: Builder(
-                  builder: (context) {
-                    double totalPrice = 0;
-
-                    for (final model in data.models) {
-                      totalPrice += CalculationModel.calculatePrice(model);
-                    }
-
-                    return Text(
-                      "$dataStoreCurrencyDefault${totalPrice.toStringAsFixed(2)}",
-                      style: TextStyle(fontWeight: FontWeight.bold),
+                  CalculationTableDivider(),
+                  ...data.models.map((e) {
+                    modelCount++;
+                    return CalculationModel(
+                      model: e,
+                      paddingTop: modelCount == 1,
+                      paddingBottom: modelCount == data.models.length,
                     );
-                  },
-                ),
+                  }),
+                  CalculationTableDivider(),
+
+                  ListTile(
+                    title: Text("Total"),
+                    trailing: Builder(
+                      builder: (context) {
+                        double totalPrice = 0;
+
+                        for (final model in data.models) {
+                          totalPrice += CalculationModel.calculatePrice(model);
+                        }
+
+                        return Text(
+                          NumberFormat.currency(
+                            symbol: data.currencyTextOrDefault,
+                          ).format(totalPrice),
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        );
+                      },
+                    ),
+                  ),
+                ],
               ),
-            ],
+            ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 }
@@ -207,9 +480,6 @@ class ModelForm extends StatefulWidget {
 }
 
 class _ModelFormState extends State<ModelForm> {
-  final _regexTime = RegExp(r"^(?:(?<h>\d+)\:)?(?<m>\d+)$");
-  final _regexTimePerfect = RegExp(r"^(?<h>\d{2,})\:(?<m>\d{2})$");
-
   Widget currencyPicker({bool enabled = true}) => Container(
     width: 96,
     padding: const EdgeInsets.only(left: 12),
@@ -226,21 +496,19 @@ class _ModelFormState extends State<ModelForm> {
           dataStoreCurrenciesDefault
               .map((e) => DropdownMenuEntry(value: e, label: e))
               .toList(),
-      onSelected: (_) => render(),
     ),
   );
 
   void render() {
-    widget.model.formKey.currentState?.validate();
+    data.reportUrlToPlatform();
     widget.onRender();
-    if (mounted) {
-      setState(() {});
-    }
+    if (mounted) setState(() {});
   }
 
   @override
   void initState() {
     data.currency.addListener(render);
+    widget.model.addListener(render);
     super.initState();
   }
 
@@ -248,6 +516,7 @@ class _ModelFormState extends State<ModelForm> {
   void dispose() {
     super.dispose();
     data.currency.removeListener(render);
+    widget.model.removeListener(render);
   }
 
   @override
@@ -295,7 +564,6 @@ class _ModelFormState extends State<ModelForm> {
                                         "wobblyChessKnight",
                                       ][seed],
                                 ),
-                                onChanged: (_) => render,
                               ),
                             ),
                             SizedBox(width: 8),
@@ -313,10 +581,9 @@ class _ModelFormState extends State<ModelForm> {
                                   border: OutlineInputBorder(),
                                   hintText: "1",
                                 ),
+                                autovalidateMode: AutovalidateMode.always,
                                 validator: (value) {
-                                  if (value?.isEmpty ?? true) {
-                                    return "Required.";
-                                  }
+                                  if (value?.isEmpty ?? true) return null;
                                   if (int.tryParse(value ?? "") == null) {
                                     return "Must be Int.";
                                   } else if (int.parse(value!) < 1) {
@@ -324,7 +591,6 @@ class _ModelFormState extends State<ModelForm> {
                                   }
                                   return null;
                                 },
-                                onChanged: (_) => render,
                               ),
                             ),
                           ],
@@ -336,6 +602,8 @@ class _ModelFormState extends State<ModelForm> {
                           controller: widget.model.description,
                           textInputAction: TextInputAction.next,
                           textCapitalization: TextCapitalization.sentences,
+                          minLines: 1,
+                          maxLines: 3,
                           decoration: InputDecoration(
                             label: Text("Description"),
                             border: OutlineInputBorder(),
@@ -352,8 +620,8 @@ class _ModelFormState extends State<ModelForm> {
                                   "Spaghetti measuring tool",
                                   "Wobbly chess knight",
                                 ][seed],
+                            hintMaxLines: 1,
                           ),
-                          onChanged: (_) => render,
                         ),
                       ),
 
@@ -365,6 +633,7 @@ class _ModelFormState extends State<ModelForm> {
                           controller: widget.model.time,
                           keyboardType: TextInputType.datetime,
                           textInputAction: TextInputAction.next,
+                          onChanged: (_) => setState(() {}),
                           decoration: InputDecoration(
                             label: Text("Spend Time"),
                             border: OutlineInputBorder(),
@@ -402,6 +671,7 @@ class _ModelFormState extends State<ModelForm> {
                               }
                             }(),
                           ),
+                          autovalidateMode: AutovalidateMode.always,
                           validator: (value) {
                             if (value?.isEmpty ?? true) return null;
                             if (!_regexTime.hasMatch(value!)) {
@@ -409,7 +679,6 @@ class _ModelFormState extends State<ModelForm> {
                             }
                             return null;
                           },
-                          onChanged: (_) => render,
                         ),
                       ),
                       ListTilePadding(
@@ -422,21 +691,26 @@ class _ModelFormState extends State<ModelForm> {
                           decoration: InputDecoration(
                             label: Text("Hourly Rate"),
                             border: OutlineInputBorder(),
-                            hintText: "0.00",
+                            hintText:
+                                "0${NumberFormat.decimalPattern().symbols.DECIMAL_SEP}00",
                             suffixIcon: currencyPicker(
                               enabled: widget.model.fixPrice.text.isEmpty,
                             ),
                           ),
+                          autovalidateMode: AutovalidateMode.always,
                           validator: (value) {
                             if (value?.isEmpty ?? true) return null;
-                            if (double.tryParse(value ?? "") == null) {
+                            value = value!.replaceAll(
+                              NumberFormat.decimalPattern().symbols.DECIMAL_SEP,
+                              ".",
+                            );
+                            if (double.tryParse(value) == null) {
                               return "Must be a valid number.";
-                            } else if (double.parse(value!) < 0) {
+                            } else if (double.parse(value) < 0) {
                               return "Must be positive.";
                             }
                             return null;
                           },
-                          onChanged: (_) => render,
                         ),
                       ),
 
@@ -452,6 +726,7 @@ class _ModelFormState extends State<ModelForm> {
                             enabled: widget.model.fixPrice.text.isEmpty,
                             keyboardType: TextInputType.number,
                             textInputAction: TextInputAction.next,
+                            onChanged: (_) => setState(() {}),
                             decoration: InputDecoration(
                               label: Text("Price Margin"),
                               border: OutlineInputBorder(),
@@ -464,6 +739,7 @@ class _ModelFormState extends State<ModelForm> {
                                       : null,
                               suffixText: "%",
                             ),
+                            autovalidateMode: AutovalidateMode.always,
                             validator: (value) {
                               if (value?.isEmpty ?? true) return null;
                               if (int.tryParse(value ?? "") == null) {
@@ -473,7 +749,6 @@ class _ModelFormState extends State<ModelForm> {
                               }
                               return null;
                             },
-                            onChanged: (_) => render,
                           ),
                         ),
                       ),
@@ -486,22 +761,27 @@ class _ModelFormState extends State<ModelForm> {
                           decoration: InputDecoration(
                             label: Text("Fix Price"),
                             border: OutlineInputBorder(),
-                            hintText: "0.00",
+                            hintText:
+                                "0${NumberFormat.decimalPattern().symbols.DECIMAL_SEP}00",
                             helperText:
                                 "If this option is set, hourly rate, filament costs, and the price margin will get ignored.",
                             helperMaxLines: 2,
                             suffixIcon: currencyPicker(),
                           ),
+                          autovalidateMode: AutovalidateMode.always,
                           validator: (value) {
                             if (value?.isEmpty ?? true) return null;
-                            if (double.tryParse(value ?? "") == null) {
+                            value = value!.replaceAll(
+                              NumberFormat.decimalPattern().symbols.DECIMAL_SEP,
+                              ".",
+                            );
+                            if (double.tryParse(value) == null) {
                               return "Must be a valid number.";
-                            } else if (double.parse(value!) < 0) {
+                            } else if (double.parse(value) < 0) {
                               return "Must be positive.";
                             }
                             return null;
                           },
-                          onChanged: (_) => render,
                         ),
                       ),
                     ],

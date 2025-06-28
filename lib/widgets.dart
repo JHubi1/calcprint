@@ -34,6 +34,7 @@ class ListTilePadding extends StatelessWidget {
   final bool useSpecificationPadding;
   final bool usePaddingRight;
   final bool usePaddingTop;
+  final bool usePaddingBottom;
   final Widget child;
 
   const ListTilePadding({
@@ -41,6 +42,7 @@ class ListTilePadding extends StatelessWidget {
     this.useSpecificationPadding = false,
     this.usePaddingRight = true,
     this.usePaddingTop = true,
+    this.usePaddingBottom = true,
     required this.child,
   });
 
@@ -70,6 +72,13 @@ class ListTilePadding extends StatelessWidget {
       padding = padding.subtract(
         EdgeInsets.only(
           top: 2 * (ListTileTheme.of(context).minVerticalPadding ?? 4),
+        ),
+      );
+    }
+    if (!usePaddingBottom) {
+      padding = padding.subtract(
+        EdgeInsets.only(
+          bottom: 2 * (ListTileTheme.of(context).minVerticalPadding ?? 4),
         ),
       );
     }
