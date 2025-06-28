@@ -1,21 +1,36 @@
 name: Building
 on:
-  push:
-    branches: [main]
-    paths:
-      - lib/**
-      - pubspec.yaml
-      - assets/data/**
-      - web/**
-      - LICENSE
-      - NOTICE
-      - makefile
-      - .github/workflows/build.yml
+  # push:
+  #   branches: [main]
+  #   paths:
+  #     - lib/**
+  #     - pubspec.yaml
+  #     - assets/data/**
+  #     - web/**
+  #     - LICENSE
+  #     - NOTICE
+  #     - makefile
+  #     - .github/workflows/build.yml
+  workflow_dispatch:
+  release:
+    types:
+      - published
+      - unpublished
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
+      - name: Get latest release tag
+        id: latest
+        run: |
+          if [[ "${{ github.event_name }}" == "release" ]]; then
+            echo "ref=$(curl -s https://api.github.com/repos/${{ github.repository }}/releases/latest | jq -r '.tag_name')" >> $GITHUB_OUTPUT
+          else
+            echo "ref=main" >> $GITHUB_OUTPUT
+          fi
       - uses: actions/checkout@v2
+        with:
+          ref: ${{ steps.latest.outputs.ref }}
       - uses: subosito/flutter-action@v2
         with:
           channel: stable
