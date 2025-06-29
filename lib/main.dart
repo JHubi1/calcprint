@@ -24,6 +24,7 @@ import 'model.dart';
 import 'notice.dart';
 import 'toolbar.dart';
 import 'widgets.dart';
+import 'generated/gitbaker.g.dart';
 
 const String authority = "calcprint.com";
 final seed = Random().nextInt(10);
@@ -398,7 +399,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   height: 96,
                 ),
                 applicationVersion:
-                    "v${packageInfo.version} (build ${packageInfo.buildNumber})",
+                    "v${packageInfo.version}+${packageInfo.buildNumber}\n(${GitBaker.currentBranch.commits.last.hash})",
                 applicationLegalese: "Copyright 2025 JHubi1",
                 routeSettings: RouteSettings(name: "about"),
                 children: [

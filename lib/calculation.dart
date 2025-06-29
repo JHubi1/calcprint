@@ -367,9 +367,8 @@ class CalculationTable extends StatelessWidget {
                     Transform.translate(
                       offset: Offset(
                         0,
-                        -2 *
-                                (ListTileTheme.of(context).minVerticalPadding ??
-                                    4) -
+                        (ListTileTheme.of(context).minVerticalPadding ?? 4) *
+                                -2 -
                             4,
                       ),
                       child: ListTilePadding(
