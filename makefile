@@ -1,5 +1,6 @@
 .DEFAULT_GOAL = buildWeb
 flutter ?= flutter
+dart ?= dart
 package ?= com.jhubi1.calcprint
 
 .PHONY: clean
@@ -9,10 +10,12 @@ clean:
 
 .PHONY: buildWeb
 buildWeb:
+	$(dart) run gitbaker
 	$(flutter) build web --release --csp --wasm
 
 .PHONY: buildAndroid
 buildAndroid:
+	$(dart) run gitbaker
 	$(flutter) build apk --release
 
 .PHONY: buildFull

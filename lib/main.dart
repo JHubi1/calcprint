@@ -399,7 +399,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   height: 96,
                 ),
                 applicationVersion:
-                    "v${packageInfo.version}+${packageInfo.buildNumber}\n(${GitBaker.currentBranch.commits.last.hash})",
+                    "v${packageInfo.version}+${packageInfo.buildNumber}\n(${GitBaker.currentBranch.commits.last.hash.substring(0, 7)}@${GitBaker.currentBranch.name})",
                 applicationLegalese: "Copyright 2025 JHubi1",
                 routeSettings: RouteSettings(name: "about"),
                 children: [
