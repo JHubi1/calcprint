@@ -4,3 +4,7 @@ linter:
   rules:
     - directives_ordering
     - prefer_relative_imports
+    - avoid_as
+    - avoid_js_rounded_ints
+    - prefer_foreach
+    - unnecessary_const

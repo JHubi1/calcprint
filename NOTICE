@@ -7,8 +7,8 @@ This software uses a variety of open source packages. These may be licensed
 under different licenses and need to be acknowledged separately. For a complete
 list of acknowledgements, compile the project, click on "About CalcPrint" in
 the top right corner and then on "View Licenses".
-This notice file is also embedded in the application itself. They can be found
-in the same "About CalcPrint" dialog under "View Notice".
+This notice file is also embedded in the application itself. It can be found in
+the same "About CalcPrint" dialog by holding down the "GitHub Repository" link.
 
 If this software is modified, this notice and the project's license must be
 preserved in the application itself. All changes made must be listed below,

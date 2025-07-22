@@ -74,7 +74,7 @@ class DataStore extends ChangeNotifier {
     return _instance!;
   }
 
-  static DataStore newInstanceWith({
+  static void resetInstanceWith({
     String? printoutTitle,
     String? printoutFrom,
     String? printoutTo,
@@ -83,31 +83,23 @@ class DataStore extends ChangeNotifier {
     String? currency,
   }) {
     final fallback = _default;
-    _instance = DataStore._(
-      printoutTitleController: TextEditingController(
-        text: printoutTitle ?? fallback.printoutTitleController.text,
-      ),
-      printoutFromController: TextEditingController(
-        text: printoutFrom ?? fallback.printoutFromController.text,
-      ),
-      printoutToController: TextEditingController(
-        text: printoutTo ?? fallback.printoutToController.text,
-      ),
-      printoutKeepPrivateRaw:
-          printoutKeepPrivate ?? fallback.printoutKeepPrivateRaw,
-      models: tryWithFallback(() {
-        if (models == null) {
-          return fallback.models;
-        }
-        return (jsonDecode(models) as List)
-            .map((m) => ModelControllers.fromJson(m))
-            .toList();
-      }, fallback: fallback.models),
-      currency: TextEditingController(
-        text: currency ?? dataStoreCurrencyDefault,
-      ),
-    );
-    return _instance!;
+
+    instance.printoutTitleController.text =
+        printoutTitle ?? fallback.printoutTitleController.text;
+    instance.printoutFromController.text =
+        printoutFrom ?? fallback.printoutFromController.text;
+    instance.printoutToController.text =
+        printoutTo ?? fallback.printoutToController.text;
+    instance.printoutKeepPrivateRaw =
+        printoutKeepPrivate ?? fallback.printoutKeepPrivateRaw;
+    instance.models = tryWithFallback(() {
+      return (jsonDecode(models!) as List)
+          .map((m) => ModelControllers.fromJson(m))
+          .toList();
+    }, fallback: fallback.models);
+    instance.currency.text = currency ?? dataStoreCurrencyDefault;
+
+    instance.reportUrlToPlatform();
   }
 
   void reportUrlToPlatform() {

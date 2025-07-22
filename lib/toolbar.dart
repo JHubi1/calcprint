@@ -93,10 +93,11 @@ class _ToolbarButtonResetState extends State<ToolbarButtonReset> {
         if (!data.isModified) return;
 
         final oldModels = data.toJson();
-        DataStore.newInstanceWith();
+        DataStore.resetInstanceWith();
         widget.onUpdate();
 
-        ScaffoldMessenger.of(context).showSnackBar(
+        final messenger = ScaffoldMessenger.of(context);
+        messenger.showSnackBar(
           SnackBar(
             behavior: SnackBarBehavior.floating,
             width: Display.from(context).isPhone ? null : 288,
@@ -104,20 +105,19 @@ class _ToolbarButtonResetState extends State<ToolbarButtonReset> {
             action: SnackBarAction(
               label: "Undo",
               onPressed: () {
-                if (!data.isModified && mounted) {
-                  setState(() {
-                    final tmp = jsonDecode(oldModels) as Map<String, dynamic>;
-                    DataStore.newInstanceWith(
-                      printoutTitle: tmp["printoutTitle"] as String?,
-                      printoutFrom: tmp["printoutFrom"] as String?,
-                      printoutTo: tmp["printoutTo"] as String?,
-                      printoutKeepPrivate: tmp["printoutKeepPrivate"] as bool?,
-                      models: jsonEncode(tmp["models"]),
-                    );
-                    widget.onUpdate();
-                  });
+                if (!data.isModified) {
+                  final tmp = jsonDecode(oldModels) as Map<String, dynamic>;
+                  DataStore.resetInstanceWith(
+                    printoutTitle: tmp["printoutTitle"] as String?,
+                    printoutFrom: tmp["printoutFrom"] as String?,
+                    printoutTo: tmp["printoutTo"] as String?,
+                    printoutKeepPrivate: tmp["printoutKeepPrivate"] as bool?,
+                    models: jsonEncode(tmp["models"]),
+                  );
+                  widget.onUpdate();
+                  if (mounted) setState(() {});
                 }
-                ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                messenger.hideCurrentSnackBar();
               },
             ),
           ),

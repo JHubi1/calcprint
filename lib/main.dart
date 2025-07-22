@@ -18,13 +18,13 @@ import 'bookmark.dart';
 import 'calculation.dart';
 import 'display.dart';
 import 'extensions.dart';
+import 'generated/gitbaker.g.dart';
 import 'l10n/app_localizations.dart';
 import 'main.gr.dart';
 import 'model.dart';
 import 'notice.dart';
 import 'toolbar.dart';
 import 'widgets.dart';
-import 'generated/gitbaker.g.dart';
 
 const String authority = "calcprint.com";
 final seed = Random().nextInt(10);
@@ -135,6 +135,7 @@ class HomeScreen extends StatefulWidget {
   final String? printoutTo;
   final bool? printoutKeepPrivate;
   final String? models;
+  final String? currency;
 
   const HomeScreen({
     super.key,
@@ -143,6 +144,7 @@ class HomeScreen extends StatefulWidget {
     @queryParam this.printoutTo,
     @queryParam this.printoutKeepPrivate,
     @queryParam this.models,
+    @queryParam this.currency,
   });
 
   @override
@@ -155,14 +157,14 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   void initState() {
-    DataStore.newInstanceWith(
+    DataStore.resetInstanceWith(
       printoutTitle: widget.printoutTitle,
       printoutFrom: widget.printoutFrom,
       printoutTo: widget.printoutTo,
       printoutKeepPrivate: widget.printoutKeepPrivate,
       models: widget.models,
+      currency: widget.currency,
     );
-    data.reportUrlToPlatform();
     data.addListener(render);
     super.initState();
   }
@@ -450,7 +452,14 @@ class _HomeScreenState extends State<HomeScreen> {
           Expanded(
             child: Stack(
               children: [
-                Center(child: CalculationTable()),
+                Center(
+                  child: ScrollConfiguration(
+                    behavior: ScrollConfiguration.of(
+                      context,
+                    ).copyWith(scrollbars: false),
+                    child: SingleChildScrollView(child: CalculationTable()),
+                  ),
+                ),
                 SizedBox(
                   width: double.infinity,
                   child: Column(
@@ -463,17 +472,20 @@ class _HomeScreenState extends State<HomeScreen> {
                           offset: Offset(data.isModified ? 0 : 1, 0),
                           duration: Duration(milliseconds: 250),
                           curve: Curves.fastEaseInToSlowEaseOut,
-                          child: Padding(
-                            padding: const EdgeInsets.all(8),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                ToolbarButtonBookmark(),
-                                ToolbarButtonReset(
-                                  onUpdate: () => setState(() {}),
-                                ),
-                                ToolbarButtonShare(),
-                              ],
+                          child: Card.filled(
+                            color: Theme.of(context).colorScheme.surface,
+                            child: Padding(
+                              padding: const EdgeInsets.all(4),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  ToolbarButtonBookmark(),
+                                  ToolbarButtonReset(
+                                    onUpdate: () => setState(() {}),
+                                  ),
+                                  ToolbarButtonShare(),
+                                ],
+                              ),
                             ),
                           ),
                         ),
@@ -542,10 +554,6 @@ class _HomeScreenState extends State<HomeScreen> {
           if (mounted) setState(() {});
         },
       ),
-      floatingActionButtonLocation:
-          Display.from(context).isPhone
-              ? FloatingActionButtonLocation.endContained
-              : null,
       bottomNavigationBar:
           Display.from(context).isPhone
               ? Container(
@@ -577,8 +585,9 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               )
               : null,
+      floatingActionButtonLocation: FloatingActionButtonLocation.endContained,
       floatingActionButton:
-          Display.from(context).isPhone
+          Display.from(context).isPhone && data.isModified
               ? _HomeScreenFab(
                 calculationTable: CalculationTable(),
                 url: data.url,
@@ -658,7 +667,7 @@ class _HomeScreenDrawerState extends State<_HomeScreenDrawer> {
                   style: ListTileStyle.drawer,
                   isThreeLine: true,
                   title: Text(
-                    bookmarkParsed["printoutTitle"] ?? "Untitled",
+                    bookmarkParsed["printoutTitle"] ?? "Untitled Project",
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -684,7 +693,7 @@ class _HomeScreenDrawerState extends State<_HomeScreenDrawer> {
 
                               if (bookmarkParsed["models"] != null) {
                                 tmp +=
-                                    "\nModels: ${List<Map>.from(bookmarkParsed["models"]).map((e) => "“${e["name"]}”").join(", ")}";
+                                    "\nModels: ${List<Map>.from(bookmarkParsed["models"]).map((e) => "“${e["name"] ?? "Untitled"}”").join(", ")}";
                               }
 
                               return Text(
@@ -710,7 +719,7 @@ class _HomeScreenDrawerState extends State<_HomeScreenDrawer> {
                     ),
                   ),
                   onTap: () {
-                    DataStore.newInstanceWith(
+                    DataStore.resetInstanceWith(
                       printoutTitle: bookmarkParsed["printoutTitle"],
                       printoutFrom: bookmarkParsed["printoutFrom"],
                       printoutTo: bookmarkParsed["printoutTo"],

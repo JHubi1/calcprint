@@ -100,7 +100,7 @@ final class GitBaker {
 
   static final Set<Branch> branches = {
     Branch._(
-      r"0d00a202da3821d3b4f7ad4fb1757f4328f84544",
+      r"a2591c6e228d081d8cef6bad4a387cd87cbaeeb3",
       name: r"main",
       commits: [
         Commit._(
@@ -219,6 +219,26 @@ final class GitBaker {
           date: DateTime.fromMillisecondsSinceEpoch(
             1751146421000,
           ), // 2025-06-28T21:33:41.000Z
+          signed: true,
+          branch: r"main",
+          author: r"me@jhubi1.com",
+        ),
+        Commit._(
+          r"c3c56af6a801fb5be6b301516c86fb8f56fd90ce",
+          message: r"Commit hash in info screen",
+          date: DateTime.fromMillisecondsSinceEpoch(
+            1751191951000,
+          ), // 2025-06-29T10:12:31.000Z
+          signed: true,
+          branch: r"main",
+          author: r"me@jhubi1.com",
+        ),
+        Commit._(
+          r"a2591c6e228d081d8cef6bad4a387cd87cbaeeb3",
+          message: r"Version display modifications",
+          date: DateTime.fromMillisecondsSinceEpoch(
+            1751206236000,
+          ), // 2025-06-29T14:10:36.000Z
           signed: true,
           branch: r"main",
           author: r"me@jhubi1.com",
