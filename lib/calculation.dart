@@ -343,6 +343,7 @@ class CalculationTable extends StatelessWidget {
           child: AnimatedSize(
             duration: Duration(milliseconds: 250),
             curve: Curves.fastEaseInToSlowEaseOut,
+            alignment: Alignment.topCenter,
             child: Card.filled(
               child: Column(
                 mainAxisSize: MainAxisSize.min,

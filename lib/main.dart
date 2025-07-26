@@ -12,17 +12,15 @@ import 'package:material_symbols_icons/material_symbols_icons.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:universal_web/web.dart' as web;
-import 'package:url_launcher/url_launcher.dart';
 
+import 'about.dart';
 import 'bookmark.dart';
 import 'calculation.dart';
 import 'display.dart';
 import 'extensions.dart';
-import 'generated/gitbaker.g.dart';
 import 'l10n/app_localizations.dart';
 import 'main.gr.dart';
 import 'model.dart';
-import 'notice.dart';
 import 'toolbar.dart';
 import 'widgets.dart';
 
@@ -30,12 +28,16 @@ const String authority = "calcprint.com";
 final seed = Random().nextInt(10);
 
 SharedPreferencesWithCache? prefs;
+final mainAppKey = GlobalKey<_MainAppState>();
+PackageInfo? packageInfo;
 ThemeData? themeLight;
 ThemeData? themeDark;
 
 void main() {
   usePathUrlStrategy();
-  runApp(const MainApp());
+  runApp(MainApp(key: mainAppKey));
+
+  PackageInfo.fromPlatform().then((value) => packageInfo = value);
 }
 
 @AutoRouterConfig()
@@ -79,7 +81,7 @@ class _MainAppState extends State<MainApp> {
     }
   }
 
-  ThemeData themeModifier(ThemeData theme) {
+  ThemeData _themeModifier(ThemeData theme) {
     return theme.copyWith(
       progressIndicatorTheme: theme.progressIndicatorTheme.copyWith(
         year2023: true,
@@ -89,18 +91,27 @@ class _MainAppState extends State<MainApp> {
     );
   }
 
+  void changeLocale(Locale locale) {
+    if (prefs == null) return;
+    if (!AppLocalizations.supportedLocales.contains(locale)) return;
+    prefs!.setString("locale", locale.toString());
+    if (mounted) setState(() {});
+  }
+
   @override
   Widget build(BuildContext context) {
+    precacheImage(AssetImage("assets/data/icon.png"), context);
+
     return DynamicColorBuilder(
       builder: (ColorScheme? lightDynamic, ColorScheme? darkDynamic) {
-        themeLight = themeModifier(
+        themeLight = _themeModifier(
           ThemeData.from(
             colorScheme:
                 lightDynamic ??
                 ColorScheme.fromSeed(seedColor: Color(0xFF22A543)),
           ),
         );
-        themeDark = themeModifier(
+        themeDark = _themeModifier(
           ThemeData.from(
             colorScheme:
                 darkDynamic ??
@@ -111,14 +122,33 @@ class _MainAppState extends State<MainApp> {
           ),
         );
 
+        var localeCode = prefs?.getString("locale");
+        Locale? locale;
+        if (localeCode != null) {
+          final parts = localeCode.split("_");
+          if (parts.length == 1) {
+            locale = Locale(parts[0]);
+          } else if (parts.length == 2) {
+            locale = Locale(parts[0], parts[1]);
+          }
+        }
+
+        if (locale != null &&
+            !AppLocalizations.supportedLocales.contains(locale)) {
+          prefs!.remove("locale");
+          locale = null;
+        }
+
         return MaterialApp.router(
-          title:
-              data.printoutTitle == null
-                  ? "CalcPrint"
-                  : "${data.printoutTitle} – CalcPrint",
+          onGenerateTitle: (context) {
+            return data.printoutTitle == null
+                ? AppLocalizations.of(context).appTitle
+                : "${data.printoutTitle} – ${AppLocalizations.of(context).appTitle}";
+          },
           routerConfig: _appRouter.config(),
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
+          locale: locale,
           themeMode: ThemeMode.system,
           theme: themeLight,
           darkTheme: themeDark,
@@ -374,7 +404,7 @@ class _HomeScreenState extends State<HomeScreen> {
         (MediaQuery.sizeOf(context).width >= 1250);
     final appBar = AppBar(
       automaticallyImplyLeading: false,
-      title: Text("CalcPrint"),
+      title: Text(AppLocalizations.of(context).appTitle),
       backgroundColor: appBarDesktop ? Colors.transparent : null,
       scrolledUnderElevation: appBarDesktop ? 0 : null,
       actions: [
@@ -390,53 +420,9 @@ class _HomeScreenState extends State<HomeScreen> {
           child: IconButton(
             tooltip: "About CalcPrint",
             onPressed: () async {
-              final packageInfo = await PackageInfo.fromPlatform();
-              if (!context.mounted) return;
-              showAboutDialog(
+              showAppDialog(
                 context: context,
-                applicationName: "CalcPrint",
-                applicationIcon: Image.asset(
-                  "assets/data/icon.png",
-                  width: 96,
-                  height: 96,
-                ),
-                applicationVersion:
-                    "v${packageInfo.version}+${packageInfo.buildNumber}\n(${GitBaker.currentBranch.commits.last.hash.substring(0, 7)}@${GitBaker.currentBranch.name})",
-                applicationLegalese: "Copyright 2025 JHubi1",
                 routeSettings: RouteSettings(name: "about"),
-                children: [
-                  SizedBox(height: 16),
-                  ListTile(
-                    dense: true,
-                    leading: Icon(Symbols.favorite, fill: 1),
-                    title: Text(
-                      "Built with love, for the 3D Printing Community as an Open Source project.",
-                    ),
-                  ),
-                  ListTile(
-                    dense: true,
-                    leading: ImageIcon(AssetImage("assets/data/github.png")),
-                    title: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text("GitHub Repository"),
-                        Transform.translate(
-                          offset: Offset(4, -1),
-                          child: Icon(Symbols.open_in_new, size: 16),
-                        ),
-                      ],
-                    ),
-                    subtitle: Text(
-                      "Report issues, snoop around, and get the source code.",
-                    ),
-                    onTap:
-                        () => launchUrl(
-                          Uri.parse("https://github.com/JHubi1/calcprint"),
-                        ),
-                    onLongPress:
-                        () => showNoticeDialog(context, doNavigatorPop: true),
-                  ),
-                ],
               );
             },
             icon: Icon(Symbols.info),
@@ -533,7 +519,10 @@ class _HomeScreenState extends State<HomeScreen> {
                 backgroundColor: Colors.transparent,
                 elevation: 0,
                 scrolledUnderElevation: 0,
-                systemOverlayStyle: SystemUiOverlayStyle.dark,
+                systemOverlayStyle:
+                    Theme.of(context).colorScheme.brightness == Brightness.dark
+                        ? SystemUiOverlayStyle.light
+                        : SystemUiOverlayStyle.dark,
               ),
       body: Center(
         child: ConstrainedBox(

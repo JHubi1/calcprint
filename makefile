@@ -11,11 +11,13 @@ clean:
 .PHONY: buildWeb
 buildWeb:
 	$(dart) run gitbaker
+	$(flutter) gen-l10n
 	$(flutter) build web --release --csp --wasm
 
 .PHONY: buildAndroid
 buildAndroid:
 	$(dart) run gitbaker
+	$(flutter) gen-l10n
 	$(flutter) build apk --release
 
 .PHONY: buildFull

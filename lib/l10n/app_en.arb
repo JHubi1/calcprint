@@ -1,3 +1,13 @@
 {
-    "@@locale": "en"
+    "@@locale": "en",
+    "languageName": "English",
+    "@languageName": {
+        "description": "The name of the locale, used in the app settings. This must me changed to the name of the locale in the language of the locale itself, e.g. 'Deutsch' for German. The country code, if present in the locale, must be included in the name, e.g. 'English (US)' for US English.",
+        "context": "app"
+    },
+    "appTitle": "CalcPrint",
+    "@appTitle": {
+        "description": "The title of the application. This may be displayed in the app bar or as the main title of the app.\nThis may not be translated! Only do if necessary.",
+        "context": "app"
+    }
 }

@@ -18,18 +18,23 @@ dependencies:
   flutter_localizations:
     sdk: flutter
 
-  intl: any
+  intl: any # dependency hell
   material_symbols_icons: ^4.2815.1
-  universal_web: ^1.1.0+2
+  universal_web: ^1.1.1
   auto_route: ^10.1.0+1
-  dynamic_system_colors: ^1.8.0 # dynamic_color: ^1.7.0
   package_info_plus: ^8.3.0
   url_launcher: ^6.3.1
   share_plus: ^11.0.0
   pretty_qr_code: ^3.4.0
   shared_preferences: ^2.5.3
-  get_time_ago: ^2.3.1
+  get_time_ago: ^2.3.2
   widgets_to_image: ^2.0.1
+  country_flags: ^3.3.0
+  strgad: ^0.1.0+1
+
+  # because `dynamic_color` doesn't fully support Material You surface colors:
+  # > https://github.com/material-foundation/flutter-packages/issues/574
+  dynamic_system_colors: ^1.8.0 # dynamic_color: ^1.7.0
 
 dev_dependencies:
   flutter_test:

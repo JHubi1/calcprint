@@ -93,6 +93,18 @@ abstract class AppLocalizations {
     Locale('en')
   ];
 
+  /// The name of the locale, used in the app settings. This must me changed to the name of the locale in the language of the locale itself, e.g. 'Deutsch' for German. The country code, if present in the locale, must be included in the name, e.g. 'English (US)' for US English.
+  ///
+  /// In en, this message translates to:
+  /// **'English'**
+  String get languageName;
+
+  /// The title of the application. This may be displayed in the app bar or as the main title of the app.
+  /// This may not be translated! Only do if necessary.
+  ///
+  /// In en, this message translates to:
+  /// **'CalcPrint'**
+  String get appTitle;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {
