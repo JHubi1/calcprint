@@ -1,13 +1,23 @@
 {
+    "lang": "en",
     "name": "CalcPrint",
-    "short_name": "CalcPrint",
+    "description": "A tool for calculating the printing cost of 3D print items.",
+    "categories": [
+        "utilities"
+    ],
+    "background_color": "#F7FBF2",
+    "theme_color": "#38693C",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#FFFFFF",
-    "theme_color": "#363636",
-    "description": "A tool for calculating the printing cost of 3D print items.",
     "orientation": "portrait-primary",
-    "prefer_related_applications": false,
+    "prefer_related_applications": true,
+    "related_applications": [
+        {
+            "platform": "github",
+            "url": "https://github.com/JHubi1/calcprint/releases/latest",
+            "id": "com.jhubi1.calcprint"
+        }
+    ],
     "icons": [
         {
             "src": "icons/Icon-192.png",
@@ -30,6 +40,22 @@
             "sizes": "512x512",
             "type": "image/png",
             "purpose": "maskable"
+        }
+    ],
+    "screenshots": [
+        {
+            "src": "assets/assets/screenshots/desktop.png",
+            "sizes": "1920x1080",
+            "type": "image/png",
+            "label": "Desktop view",
+            "form_factor": "wide"
+        },
+        {
+            "src": "assets/assets/screenshots/mobile.png",
+            "sizes": "865x1920",
+            "type": "image/png",
+            "label": "Mobile view",
+            "form_factor": "narrow"
         }
     ]
 }
