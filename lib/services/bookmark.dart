@@ -1,6 +1,6 @@
 import 'package:flutter/widgets.dart';
 
-import 'main.dart';
+import '../main.dart';
 import 'model.dart';
 
 typedef BookmarkRecord = ({DateTime date, String array});

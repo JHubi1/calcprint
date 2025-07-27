@@ -17,8 +17,6 @@ class InstallDialog extends StatelessWidget {
       content: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text("CalcPrint can be installed using the following methods:"),
-          SizedBox(height: 16),
           ListTile(
             enabled: pwaInstall.installPromptEnabled,
             leading: Icon(Symbols.web),

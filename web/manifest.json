@@ -6,7 +6,7 @@
         "utilities"
     ],
     "background_color": "#F7FBF2",
-    "theme_color": "#38693C",
+    "theme_color": "#F7FBF2",
     "start_url": ".",
     "display": "standalone",
     "orientation": "portrait-primary",

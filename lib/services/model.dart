@@ -2,8 +2,8 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 
-import 'extensions.dart';
-import 'main.dart';
+import '../extensions.dart';
+import '../main.dart';
 import 'recent.dart';
 
 DataStore get data => DataStore.instance;

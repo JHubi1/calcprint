@@ -100,7 +100,7 @@ final class GitBaker {
 
   static final Set<Branch> branches = {
     Branch._(
-      r"2db84445cdf87b4c2a37af455a45ce0f838a78e3",
+      r"8f4f7af597b413179ee697ccc71f933375298722",
       name: r"main",
       commits: [
         Commit._(
@@ -249,6 +249,46 @@ final class GitBaker {
           date: DateTime.fromMillisecondsSinceEpoch(
             1753202531000,
           ), // 2025-07-22T16:42:11.000Z
+          signed: true,
+          branch: r"main",
+          author: r"me@jhubi1.com",
+        ),
+        Commit._(
+          r"699a1240dfe4e8d87bf20bb698ad113a17627cff",
+          message: r"Localization",
+          date: DateTime.fromMillisecondsSinceEpoch(
+            1753553777000,
+          ), // 2025-07-26T18:16:17.000Z
+          signed: true,
+          branch: r"main",
+          author: r"me@jhubi1.com",
+        ),
+        Commit._(
+          r"f3ac063a3fdb9fce0a5ba23709208d0270e0166e",
+          message: r"PWA and Android install link",
+          date: DateTime.fromMillisecondsSinceEpoch(
+            1753604580000,
+          ), // 2025-07-27T08:23:00.000Z
+          signed: true,
+          branch: r"main",
+          author: r"me@jhubi1.com",
+        ),
+        Commit._(
+          r"15f7b1e30c3d8a1a6b4477a7db81a8d612a3a534",
+          message: r"Updated dependency",
+          date: DateTime.fromMillisecondsSinceEpoch(
+            1753605403000,
+          ), // 2025-07-27T08:36:43.000Z
+          signed: true,
+          branch: r"main",
+          author: r"me@jhubi1.com",
+        ),
+        Commit._(
+          r"8f4f7af597b413179ee697ccc71f933375298722",
+          message: r"PWA Updates",
+          date: DateTime.fromMillisecondsSinceEpoch(
+            1753608348000,
+          ), // 2025-07-27T09:25:48.000Z
           signed: true,
           branch: r"main",
           author: r"me@jhubi1.com",

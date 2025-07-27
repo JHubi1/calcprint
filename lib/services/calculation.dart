@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
 
-import 'extensions.dart';
-import 'main.dart';
+import '../extensions.dart';
+import '../main.dart';
 import 'model.dart';
-import 'widgets.dart';
+import '../widgets/widgets.dart';
 
 final _regexTime = RegExp(r"^(?:(?<h>\d+)\:)?(?<m>\d+)$");
 final _regexTimePerfect = RegExp(r"^(?<h>\d{2,})\:(?<m>\d{2})$");

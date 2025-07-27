@@ -14,17 +14,17 @@ import 'package:pwa_install/pwa_install.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:universal_web/web.dart' as web;
 
-import 'about.dart';
-import 'bookmark.dart';
-import 'calculation.dart';
-import 'display.dart';
+import 'screens/about.dart';
+import 'services/bookmark.dart';
+import 'services/calculation.dart';
+import 'services/display.dart';
 import 'extensions.dart';
-import 'install.dart';
+import 'screens/install.dart';
 import 'l10n/app_localizations.dart';
 import 'main.gr.dart';
-import 'model.dart';
-import 'toolbar.dart';
-import 'widgets.dart';
+import 'services/model.dart';
+import 'widgets/toolbar.dart';
+import 'widgets/widgets.dart';
 
 const String authority = "calcprint.com";
 final seed = Random().nextInt(10);

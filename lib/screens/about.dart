@@ -8,9 +8,9 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:strgad/strgad.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import 'generated/gitbaker.g.dart';
-import 'l10n/app_localizations.dart';
-import 'main.dart';
+import '../generated/gitbaker.g.dart';
+import '../l10n/app_localizations.dart';
+import '../main.dart';
 import 'notice.dart';
 
 final Uri localizationUrl = Uri.parse("");
