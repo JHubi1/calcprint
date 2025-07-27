@@ -31,7 +31,9 @@ dependencies:
   widgets_to_image: ^2.0.1
   country_flags: ^3.3.0
   strgad: ^0.1.0+1
-  pwa_install: ^0.0.6
+  pwa_install:
+    git:
+      url: https://github.com/daniele-sforza/pwa_install
 
   # because `dynamic_color` doesn't fully support Material You surface colors:
   # > https://github.com/material-foundation/flutter-packages/issues/574

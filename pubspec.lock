@@ -648,10 +648,11 @@ packages:
   pwa_install:
     dependency: "direct main"
     description:
-      name: pwa_install
-      sha256: "77fbb93d064d0cda0657f61386958562a13a7e57a2ce2a8b6da707d3bcef43c5"
-      url: "https://pub.dev"
-    source: hosted
+      path: "."
+      ref: HEAD
+      resolved-ref: "82320a219574c1b5ddf1d83e080cad5a84261c2d"
+      url: "https://github.com/daniele-sforza/pwa_install"
+    source: git
     version: "0.0.6"
   qr:
     dependency: transitive
