@@ -5,9 +5,9 @@ import 'package:material_symbols_icons/material_symbols_icons.dart';
 import 'package:pretty_qr_code/pretty_qr_code.dart';
 import 'package:share_plus/share_plus.dart';
 
+import '../main.dart';
 import '../services/bookmark.dart';
 import '../services/display.dart';
-import '../main.dart';
 import '../services/model.dart';
 
 class ToolbarButtonBookmark extends StatefulWidget {
@@ -142,12 +142,21 @@ class ToolbarButtonShare extends StatelessWidget {
       onLongPress: () {
         if (!data.isModified) return;
 
-        final image = QrImage(
-          QrCode.fromData(
-            data: data.url.toString(),
-            errorCorrectLevel: QrErrorCorrectLevel.M,
-          ),
-        );
+        QrImage? image;
+        bool tooBig = false;
+        try {
+          image = QrImage(
+            QrCode.fromData(
+              data: data.url.toString(),
+              errorCorrectLevel: QrErrorCorrectLevel.M,
+            ),
+          );
+        } on InputTooLongException catch (_) {
+          tooBig = true;
+        }
+        final emblem = AssetImage("assets/data/emblem.png");
+        final colorScheme = Theme.of(context).colorScheme;
+
         showModalBottomSheet(
           context: context,
           builder:
@@ -159,36 +168,66 @@ class ToolbarButtonShare extends StatelessWidget {
                   child: InkWell(
                     hoverColor: Colors.transparent,
                     borderRadius: BorderRadius.circular(6),
-                    onLongPress: () async {
-                      SharePlus.instance.share(
-                        ShareParams(
-                          files: [
-                            XFile.fromData(
-                              (await image.toImageAsBytes(
-                                size: 512,
-                                decoration: PrettyQrDecoration(
-                                  shape: PrettyQrSmoothSymbol(
-                                    color: themeLight!.colorScheme.primary,
-                                  ),
-                                  quietZone: const PrettyQrModulesQuietZone(4),
-                                  background: themeLight!.colorScheme.surface,
+                    onLongPress:
+                        (image != null)
+                            ? () async {
+                              final colorScheme = ColorScheme.fromSeed(
+                                seedColor: fallbackColor,
+                              );
+                              SharePlus.instance.share(
+                                ShareParams(
+                                  files: [
+                                    XFile.fromData(
+                                      (await image!.toImageAsBytes(
+                                        size: 512,
+                                        decoration: PrettyQrDecoration(
+                                          image: PrettyQrDecorationImage(
+                                            image: emblem,
+                                            filterQuality: FilterQuality.medium,
+                                            colorFilter: ColorFilter.mode(
+                                              colorScheme.primary,
+                                              BlendMode.srcIn,
+                                            ),
+                                          ),
+                                          shape: PrettyQrSmoothSymbol(
+                                            color: colorScheme.primary,
+                                          ),
+                                          quietZone:
+                                              const PrettyQrModulesQuietZone(4),
+                                          background: colorScheme.surface,
+                                        ),
+                                      ))!.buffer.asUint8List(),
+                                      mimeType: "image/png",
+                                      name:
+                                          "calcprintProjectQrcode${data.printoutTitle != null ? "-${data.printoutTitle!.replaceAll(" ", "_")}" : ""}.png",
+                                    ),
+                                  ],
+                                  downloadFallbackEnabled: false,
                                 ),
-                              ))!.buffer.asUint8List(),
-                              mimeType: "image/png",
-                              name: "calcprintProjectQrcode.png",
-                            ),
-                          ],
-                        ),
-                      );
-                    },
-                    child: PrettyQrView(
-                      qrImage: image,
-                      decoration: PrettyQrDecoration(
-                        shape: PrettyQrSmoothSymbol(
-                          color: Theme.of(context).colorScheme.primary,
-                        ),
-                      ),
-                    ),
+                              );
+                            }
+                            : null,
+                    child:
+                        (image != null)
+                            ? PrettyQrView(
+                              qrImage: image,
+                              decoration: PrettyQrDecoration(
+                                image: PrettyQrDecorationImage(
+                                  image: emblem,
+                                  filterQuality: FilterQuality.medium,
+                                  colorFilter: ColorFilter.mode(
+                                    colorScheme.primary,
+                                    BlendMode.srcIn,
+                                  ),
+                                ),
+                                shape: PrettyQrSmoothSymbol(
+                                  color: colorScheme.primary,
+                                ),
+                              ),
+                            )
+                            : tooBig
+                            ? Text("Input too long to generate QR code.")
+                            : Text("Unable to generate QR code."),
                   ),
                 ),
               ),

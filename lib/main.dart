@@ -14,14 +14,14 @@ import 'package:pwa_install/pwa_install.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:universal_web/web.dart' as web;
 
+import 'extensions.dart';
+import 'l10n/app_localizations.dart';
+import 'main.gr.dart';
 import 'screens/about.dart';
+import 'screens/install.dart';
 import 'services/bookmark.dart';
 import 'services/calculation.dart';
 import 'services/display.dart';
-import 'extensions.dart';
-import 'screens/install.dart';
-import 'l10n/app_localizations.dart';
-import 'main.gr.dart';
 import 'services/model.dart';
 import 'widgets/toolbar.dart';
 import 'widgets/widgets.dart';
@@ -34,6 +34,7 @@ final mainAppKey = GlobalKey<_MainAppState>();
 PackageInfo? packageInfo;
 ThemeData? themeLight;
 ThemeData? themeDark;
+final fallbackColor = Color(0xFF22A543);
 
 void main() {
   usePathUrlStrategy();
@@ -111,8 +112,7 @@ class _MainAppState extends State<MainApp> {
         themeLight = _themeModifier(
           ThemeData.from(
             colorScheme:
-                lightDynamic ??
-                ColorScheme.fromSeed(seedColor: Color(0xFF22A543)),
+                lightDynamic ?? ColorScheme.fromSeed(seedColor: fallbackColor),
           ),
         );
         themeDark = _themeModifier(
@@ -120,7 +120,7 @@ class _MainAppState extends State<MainApp> {
             colorScheme:
                 darkDynamic ??
                 ColorScheme.fromSeed(
-                  seedColor: Color(0xFF22A543),
+                  seedColor: fallbackColor,
                   brightness: Brightness.dark,
                 ),
           ),
@@ -409,7 +409,7 @@ class _HomeScreenState extends State<HomeScreen> {
       automaticallyImplyLeading: false,
       title: Text(AppLocalizations.of(context).appTitle),
       backgroundColor: appBarDesktop ? Colors.transparent : null,
-      scrolledUnderElevation: appBarDesktop ? 0 : null,
+      scrolledUnderElevation: 0,
       actions: [
         kIsWeb && InstallDialog.isBrowser
             ? Padding(
