@@ -645,6 +645,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.5.0"
+  pwa_install:
+    dependency: "direct main"
+    description:
+      name: pwa_install
+      sha256: "77fbb93d064d0cda0657f61386958562a13a7e57a2ce2a8b6da707d3bcef43c5"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.0.6"
   qr:
     dependency: transitive
     description:

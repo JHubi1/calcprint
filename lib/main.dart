@@ -10,6 +10,7 @@ import 'package:flutter_web_plugins/url_strategy.dart';
 import 'package:get_time_ago/get_time_ago.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:pwa_install/pwa_install.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:universal_web/web.dart' as web;
 
@@ -18,6 +19,7 @@ import 'bookmark.dart';
 import 'calculation.dart';
 import 'display.dart';
 import 'extensions.dart';
+import 'install.dart';
 import 'l10n/app_localizations.dart';
 import 'main.gr.dart';
 import 'model.dart';
@@ -35,6 +37,8 @@ ThemeData? themeDark;
 
 void main() {
   usePathUrlStrategy();
+  PWAInstall().setup();
+
   runApp(MainApp(key: mainAppKey));
 
   PackageInfo.fromPlatform().then((value) => packageInfo = value);
@@ -131,12 +135,11 @@ class _MainAppState extends State<MainApp> {
           } else if (parts.length == 2) {
             locale = Locale(parts[0], parts[1]);
           }
-        }
 
-        if (locale != null &&
-            !AppLocalizations.supportedLocales.contains(locale)) {
-          prefs!.remove("locale");
-          locale = null;
+          if (!AppLocalizations.supportedLocales.contains(locale)) {
+            prefs!.remove("locale");
+            locale = null;
+          }
         }
 
         return MaterialApp.router(
@@ -195,17 +198,17 @@ class _HomeScreenState extends State<HomeScreen> {
       models: widget.models,
       currency: widget.currency,
     );
-    data.addListener(render);
+    data.addListener(_dataListener);
     super.initState();
   }
 
   @override
   void dispose() {
     super.dispose();
-    data.removeListener(render);
+    data.removeListener(_dataListener);
   }
 
-  void render() {
+  void _dataListener() {
     data.reportUrlToPlatform();
     if (mounted) setState(() {});
   }
@@ -348,7 +351,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 if (!data.isModelsModified) {
                                   setState(() {
                                     data.models = oldModels;
-                                    render();
+                                    _dataListener();
                                   });
                                 }
                                 ScaffoldMessenger.of(
@@ -379,7 +382,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 .map(
                   (model) => ModelForm(
                     model: model,
-                    onRender: render,
+                    onRender: _dataListener,
                     onRemove:
                         (data.models.length == 1)
                             ? null
@@ -408,6 +411,15 @@ class _HomeScreenState extends State<HomeScreen> {
       backgroundColor: appBarDesktop ? Colors.transparent : null,
       scrolledUnderElevation: appBarDesktop ? 0 : null,
       actions: [
+        kIsWeb && InstallDialog.isBrowser
+            ? Padding(
+              padding: const EdgeInsets.only(left: 8),
+              child: IconButton(
+                onPressed: () => showInstallDialog(context: context),
+                icon: Icon(Symbols.install_desktop),
+              ),
+            )
+            : SizedBox.shrink(),
         IconButton(
           tooltip: "Bookmarks",
           onPressed: () {
@@ -420,10 +432,7 @@ class _HomeScreenState extends State<HomeScreen> {
           child: IconButton(
             tooltip: "About CalcPrint",
             onPressed: () async {
-              showAppDialog(
-                context: context,
-                routeSettings: RouteSettings(name: "about"),
-              );
+              showAppDialog(context: context);
             },
             icon: Icon(Symbols.info),
           ),

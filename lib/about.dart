@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:country_flags/country_flags.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -12,20 +13,7 @@ import 'l10n/app_localizations.dart';
 import 'main.dart';
 import 'notice.dart';
 
-void showAppDialog({
-  required BuildContext context,
-  bool barrierDismissible = true,
-  bool useRootNavigator = true,
-  RouteSettings? routeSettings,
-  Offset? anchorPoint,
-}) => showDialog(
-  context: context,
-  barrierDismissible: barrierDismissible,
-  useRootNavigator: useRootNavigator,
-  routeSettings: routeSettings,
-  anchorPoint: anchorPoint,
-  builder: (BuildContext context) => AppDialog(),
-);
+final Uri localizationUrl = Uri.parse("");
 
 class AppDialog extends StatefulWidget {
   const AppDialog({super.key});
@@ -88,84 +76,96 @@ class _AppDialogState extends State<AppDialog> {
               () => launchUrl(Uri.parse("https://github.com/JHubi1/calcprint")),
           onLongPress: () => showNoticeDialog(context, doNavigatorPop: true),
         ),
-        SearchAnchor(
-          textInputAction: TextInputAction.search,
-          viewHintText: "Select a language",
-          viewLeading: IconButton(
-            style: const ButtonStyle(
-              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-            ),
-            onPressed: () => Navigator.of(context).pop(),
-            icon: Icon(Symbols.close),
-          ),
-          viewTrailing: [
-            // IconButton(
-            //   tooltip: "Help translate",
-            //   onPressed: () => launchUrl(Uri.parse("")),
-            //   icon: Icon(Symbols.crowdsource),
-            // ),
-          ],
-          viewConstraints: const BoxConstraints(maxHeight: 250),
-          suggestionsBuilder: (context, controller) async {
-            final locales = <String, String>{};
-            for (var locale in AppLocalizations.supportedLocales) {
-              locales[locale.languageCode] =
-                  (await AppLocalizations.delegate.load(locale)).languageName;
-            }
-
-            final input = controller.text.toLowerCase();
-            locales.removeWhere(
-              (key, value) =>
-                  !(key.toLowerCase().contains(input) ||
-                      value.toLowerCase().contains(input)) &&
-                  !(value.toLowerCase().levenshteinDistance(input) <=
-                      max(value.length * 0.2, 2)),
-            );
-
-            if (locales.isEmpty) {
-              return [
-                ListTile(
-                  title: Text("No languages found"),
-                  subtitle: Text("Try a different search term."),
+        kIsWeb
+            ? SearchAnchor(
+              textInputAction: TextInputAction.search,
+              viewHintText: "Select a language",
+              viewLeading: IconButton(
+                style: const ButtonStyle(
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                 ),
-              ];
-            }
-
-            final widgets = <ListTile>[];
-            for (var code in locales.keys.toList()..sort()) {
-              final selected = code == currentLocale;
-              widgets.add(
-                ListTile(
-                  selected: selected,
-                  leading: _FlagLeading(locale: code, isSelected: selected),
-                  title: Text(locales[code]!),
-                  onTap: () {
-                    mainAppKey.currentState?.changeLocale(Locale(code));
-                    controller.closeView(null);
-                  },
-                ),
-              );
-            }
-
-            return widgets;
-          },
-          builder:
-              (context, controller) => ListTile(
-                dense: true,
-                leading: AnimatedSwitcher(
-                  duration: Duration(milliseconds: 250),
-                  switchInCurve: Curves.fastEaseInToSlowEaseOut,
-                  child: _FlagLeading(
-                    key: ValueKey(currentLocale),
-                    locale: currentLocale,
-                  ),
-                ),
-                title: Text(AppLocalizations.of(context).languageName),
-
-                subtitle: Text("Language used in this app. Click to change."),
-                onTap: () => controller.openView(),
+                onPressed: () => Navigator.of(context).pop(),
+                icon: Icon(Symbols.close),
               ),
-        ),
+              viewTrailing: [
+                // IconButton(
+                //   tooltip: "Help translate",
+                //   onPressed: () => launchUrl(Uri.parse("")),
+                //   icon: Icon(Symbols.crowdsource),
+                // ),
+              ],
+              viewConstraints: const BoxConstraints(maxHeight: 250),
+              suggestionsBuilder: (context, controller) async {
+                final locales = <String, String>{};
+                for (var locale in AppLocalizations.supportedLocales) {
+                  locales[locale.languageCode] =
+                      (await AppLocalizations.delegate.load(
+                        locale,
+                      )).languageName;
+                }
+
+                final input = controller.text.toLowerCase();
+                locales.removeWhere(
+                  (key, value) =>
+                      !(key.toLowerCase().contains(input) ||
+                          value.toLowerCase().contains(input)) &&
+                      !(value.toLowerCase().levenshteinDistance(input) <=
+                          max(value.length * 0.2, 2)),
+                );
+
+                if (locales.isEmpty) {
+                  return [
+                    ListTile(
+                      title: Text("No languages found"),
+                      subtitle: Text("Try a different search term."),
+                    ),
+                  ];
+                }
+
+                final widgets = <ListTile>[];
+                for (var code in locales.keys.toList()..sort()) {
+                  final selected = code == currentLocale;
+                  widgets.add(
+                    ListTile(
+                      selected: selected,
+                      leading: _FlagLeading(locale: code, isSelected: selected),
+                      title: Text(locales[code]!),
+                      onTap: () {
+                        mainAppKey.currentState?.changeLocale(Locale(code));
+                        controller.closeView(null);
+                      },
+                    ),
+                  );
+                }
+
+                return widgets;
+              },
+              builder:
+                  (context, controller) => ListTile(
+                    dense: true,
+                    leading: AnimatedSwitcher(
+                      duration: Duration(milliseconds: 250),
+                      switchInCurve: Curves.fastEaseInToSlowEaseOut,
+                      child: _FlagLeading(
+                        key: ValueKey(currentLocale),
+                        locale: currentLocale,
+                      ),
+                    ),
+                    title: Text(AppLocalizations.of(context).languageName),
+
+                    subtitle: Text(
+                      "Language used in this app. Click to change.",
+                    ),
+                    onTap: () => controller.openView(),
+                  ),
+            )
+            // : ListTile(
+            //   leading: Icon(Symbols.crowdsource),
+            //   title: Text("Help translate"),
+            //   subtitle: Text("Help translate this app to your language."),
+            //   onTap: () => launchUrl(Uri.parse("")),
+            // ),
+            : SizedBox.shrink(),
       ],
     );
   }
@@ -203,4 +203,8 @@ class _FlagLeading extends StatelessWidget {
       ),
     );
   }
+}
+
+void showAppDialog({required BuildContext context}) {
+  showDialog(context: context, builder: (_) => AppDialog());
 }
