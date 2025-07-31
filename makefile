@@ -10,14 +10,18 @@ clean:
 
 .PHONY: buildWeb
 buildWeb:
+ifeq ($(noBaking),)
 	$(dart) run gitbaker
 	$(flutter) gen-l10n
+endif
 	$(flutter) build web --release --csp --wasm
 
 .PHONY: buildAndroid
 buildAndroid:
+ifeq ($(noBaking),)
 	$(dart) run gitbaker
 	$(flutter) gen-l10n
+endif
 	$(flutter) build apk --release
 
 .PHONY: buildFull
