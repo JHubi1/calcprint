@@ -12,10 +12,10 @@ on:
   #     - makefile
   #     - .github/workflows/build.yml
   workflow_dispatch:
-  release:
-    types:
-      - published
-      - unpublished
+  # release:
+  #   types:
+  #     - published
+  #     - unpublished
 jobs:
   build:
     runs-on: ubuntu-latest
