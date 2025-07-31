@@ -37,11 +37,11 @@ jobs:
           channel: stable
           flutter-version-file: pubspec.yaml
           cache: true
-      # - run: flutter pub get
       - name: Building
         run: |
           flutter config --disable-analytics --no-cli-animations
           make buildWeb
+          cp build/web/index.html build/web/404.html
       - id: deployment
         uses: actions/upload-pages-artifact@v3
         with:
