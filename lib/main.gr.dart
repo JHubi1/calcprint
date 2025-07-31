@@ -9,21 +9,39 @@
 // coverage:ignore-file
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
-import 'package:auto_route/auto_route.dart' as _i2;
-import 'package:calcprint/main.dart' as _i1;
-import 'package:flutter/foundation.dart' as _i3;
+import 'package:auto_route/auto_route.dart' as _i3;
+import 'package:calcprint/main.dart' as _i2;
+import 'package:calcprint/screens/about.dart' as _i1;
+import 'package:flutter/foundation.dart' as _i4;
 
 /// generated route for
-/// [_i1.HomeScreen]
-class HomeRoute extends _i2.PageRouteInfo<HomeRouteArgs> {
+/// [_i1.AppDialog]
+class AppDialogRoute extends _i3.PageRouteInfo<void> {
+  const AppDialogRoute({List<_i3.PageRouteInfo>? children})
+    : super(AppDialogRoute.name, initialChildren: children);
+
+  static const String name = 'AppDialogRoute';
+
+  static _i3.PageInfo page = _i3.PageInfo(
+    name,
+    builder: (data) {
+      return const _i1.AppDialog();
+    },
+  );
+}
+
+/// generated route for
+/// [_i2.HomeScreen]
+class HomeRoute extends _i3.PageRouteInfo<HomeRouteArgs> {
   HomeRoute({
-    _i3.Key? key,
+    _i4.Key? key,
     String? printoutTitle,
     String? printoutFrom,
     String? printoutTo,
     bool? printoutKeepPrivate,
     String? models,
-    List<_i2.PageRouteInfo>? children,
+    String? currency,
+    List<_i3.PageRouteInfo>? children,
   }) : super(
          HomeRoute.name,
          args: HomeRouteArgs(
@@ -33,6 +51,7 @@ class HomeRoute extends _i2.PageRouteInfo<HomeRouteArgs> {
            printoutTo: printoutTo,
            printoutKeepPrivate: printoutKeepPrivate,
            models: models,
+           currency: currency,
          ),
          rawQueryParams: {
            'printoutTitle': printoutTitle,
@@ -40,13 +59,14 @@ class HomeRoute extends _i2.PageRouteInfo<HomeRouteArgs> {
            'printoutTo': printoutTo,
            'printoutKeepPrivate': printoutKeepPrivate,
            'models': models,
+           'currency': currency,
          },
          initialChildren: children,
        );
 
   static const String name = 'HomeRoute';
 
-  static _i2.PageInfo page = _i2.PageInfo(
+  static _i3.PageInfo page = _i3.PageInfo(
     name,
     builder: (data) {
       final queryParams = data.queryParams;
@@ -58,15 +78,17 @@ class HomeRoute extends _i2.PageRouteInfo<HomeRouteArgs> {
               printoutTo: queryParams.optString('printoutTo'),
               printoutKeepPrivate: queryParams.optBool('printoutKeepPrivate'),
               models: queryParams.optString('models'),
+              currency: queryParams.optString('currency'),
             ),
       );
-      return _i1.HomeScreen(
+      return _i2.HomeScreen(
         key: args.key,
         printoutTitle: args.printoutTitle,
         printoutFrom: args.printoutFrom,
         printoutTo: args.printoutTo,
         printoutKeepPrivate: args.printoutKeepPrivate,
         models: args.models,
+        currency: args.currency,
       );
     },
   );
@@ -80,9 +102,10 @@ class HomeRouteArgs {
     this.printoutTo,
     this.printoutKeepPrivate,
     this.models,
+    this.currency,
   });
 
-  final _i3.Key? key;
+  final _i4.Key? key;
 
   final String? printoutTitle;
 
@@ -94,9 +117,11 @@ class HomeRouteArgs {
 
   final String? models;
 
+  final String? currency;
+
   @override
   String toString() {
-    return 'HomeRouteArgs{key: $key, printoutTitle: $printoutTitle, printoutFrom: $printoutFrom, printoutTo: $printoutTo, printoutKeepPrivate: $printoutKeepPrivate, models: $models}';
+    return 'HomeRouteArgs{key: $key, printoutTitle: $printoutTitle, printoutFrom: $printoutFrom, printoutTo: $printoutTo, printoutKeepPrivate: $printoutKeepPrivate, models: $models, currency: $currency}';
   }
 
   @override
@@ -108,7 +133,8 @@ class HomeRouteArgs {
         printoutFrom == other.printoutFrom &&
         printoutTo == other.printoutTo &&
         printoutKeepPrivate == other.printoutKeepPrivate &&
-        models == other.models;
+        models == other.models &&
+        currency == other.currency;
   }
 
   @override
@@ -118,5 +144,6 @@ class HomeRouteArgs {
       printoutFrom.hashCode ^
       printoutTo.hashCode ^
       printoutKeepPrivate.hashCode ^
-      models.hashCode;
+      models.hashCode ^
+      currency.hashCode;
 }

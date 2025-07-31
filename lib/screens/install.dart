@@ -1,35 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:material_symbols_icons/symbols.dart';
-import 'package:pwa_install/pwa_install.dart';
 import 'package:url_launcher/url_launcher.dart' hide LaunchMode;
 
 class InstallDialog extends StatelessWidget {
   const InstallDialog({super.key});
 
-  static bool get isBrowser => PWAInstall().launchMode == LaunchMode.browser;
-
   @override
   Widget build(BuildContext context) {
-    final pwaInstall = PWAInstall();
     return AlertDialog(
       title: Text("Install CalcPrint"),
       icon: Icon(Icons.install_desktop),
       content: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          ListTile(
-            enabled: pwaInstall.installPromptEnabled,
-            leading: Icon(Symbols.web),
-            title: Text("Web App"),
-            subtitle: Text(
-              "Install as a Progressive Web App (PWA) on your device.",
-            ),
-            onTap: () {
-              if (pwaInstall.installPromptEnabled) {
-                pwaInstall.promptInstall_();
-              }
-            },
-          ),
           ListTile(
             leading: Icon(Symbols.android),
             title: Text("Android"),

@@ -10,7 +10,6 @@ import 'package:flutter_web_plugins/url_strategy.dart';
 import 'package:get_time_ago/get_time_ago.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
 import 'package:package_info_plus/package_info_plus.dart';
-import 'package:pwa_install/pwa_install.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:universal_web/web.dart' as web;
 
@@ -38,8 +37,6 @@ final fallbackColor = Color(0xFF22A543);
 
 void main() {
   usePathUrlStrategy();
-  PWAInstall().setup();
-
   runApp(MainApp(key: mainAppKey));
 
   PackageInfo.fromPlatform().then((value) => packageInfo = value);
@@ -52,12 +49,21 @@ class AppRouter extends RootStackRouter {
 
   @override
   List<AutoRoute> get routes => [
-    AutoRoute(page: HomeRoute.page, path: "/", initial: true),
+    AutoRoute(page: HomeRoute.page, path: "/", initial: true, children: []),
+    CustomRoute(
+      path: "/about",
+      page: AppDialogRoute.page,
+      customRouteBuilder: <T>(context, child, page) {
+        return DialogRoute(
+          context: context,
+          builder: (_) => child,
+          settings: page,
+        );
+      },
+      guards: [AppDialogGuard(HomeRoute())],
+    ),
     RedirectRoute(path: "*", redirectTo: "/"),
   ];
-
-  @override
-  List<AutoRouteGuard> get guards => [];
 }
 
 class MainApp extends StatefulWidget {
@@ -411,15 +417,13 @@ class _HomeScreenState extends State<HomeScreen> {
       backgroundColor: appBarDesktop ? Colors.transparent : null,
       scrolledUnderElevation: 0,
       actions: [
-        kIsWeb && InstallDialog.isBrowser
-            ? Padding(
-              padding: const EdgeInsets.only(left: 8),
-              child: IconButton(
-                onPressed: () => showInstallDialog(context: context),
-                icon: Icon(Symbols.install_desktop),
-              ),
-            )
-            : SizedBox.shrink(),
+        // Padding(
+        //   padding: const EdgeInsets.only(left: 8),
+        //   child: IconButton(
+        //     onPressed: () => showInstallDialog(context: context),
+        //     icon: Icon(Symbols.install_desktop),
+        //   ),
+        // ),
         IconButton(
           tooltip: "Bookmarks",
           onPressed: () {
