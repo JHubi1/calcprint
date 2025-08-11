@@ -5,3 +5,4 @@ output-localization-file: app_localizations.dart
 untranslated-messages-file: untranslated_messages.json
 synthetic-package: false
 nullable-getter: false
+format: true

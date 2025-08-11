@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:math';
 
 import 'package:auto_route/auto_route.dart';
+import 'package:cash/cash.dart';
 import 'package:dynamic_system_colors/dynamic_system_colors.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -17,7 +18,6 @@ import 'extensions.dart';
 import 'l10n/app_localizations.dart';
 import 'main.gr.dart';
 import 'screens/about.dart';
-import 'screens/install.dart';
 import 'services/bookmark.dart';
 import 'services/calculation.dart';
 import 'services/display.dart';
@@ -150,6 +150,10 @@ class _MainAppState extends State<MainApp> {
 
         return MaterialApp.router(
           onGenerateTitle: (context) {
+            // dataStoreCurrencyDefault = Currency.fromCode(
+            //   AppLocalizations.of(context).defaultCurrency,
+            // );
+
             return data.printoutTitle == null
                 ? AppLocalizations.of(context).appTitle
                 : "${data.printoutTitle} – ${AppLocalizations.of(context).appTitle}";
@@ -215,7 +219,6 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _dataListener() {
-    data.reportUrlToPlatform();
     if (mounted) setState(() {});
   }
 

@@ -36,3 +36,8 @@ T tryWithFallback<T extends Object>(
     return fallback;
   }
 }
+
+T onNull<T extends Object>(T? value, {required T orElse}) {
+  if (value == null) return orElse;
+  return value;
+}

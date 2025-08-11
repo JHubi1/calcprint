@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:cash/cash.dart';
 import 'package:flutter/material.dart';
 
 import '../extensions.dart';
@@ -8,8 +9,7 @@ import 'recent.dart';
 
 DataStore get data => DataStore.instance;
 
-final List<String> dataStoreCurrenciesDefault = ["€", r"$", "£", "¥"];
-final String dataStoreCurrencyDefault = dataStoreCurrenciesDefault.elementAt(1);
+final Currency dataStoreCurrencyDefault = Currency.eur;
 
 class DataStore extends ChangeNotifier {
   final TextEditingController printoutTitleController;
@@ -24,10 +24,9 @@ class DataStore extends ChangeNotifier {
   bool printoutKeepPrivateRaw;
   bool? get printoutKeepPrivate => printoutKeepPrivateRaw.orNullOnFalse;
 
-  final TextEditingController currency;
-  String? get currencyText =>
-      currency.text.orNullOnDefault(dataStoreCurrencyDefault);
-  String get currencyTextOrDefault => currency.text;
+  ValueNotifier<Currency?> currencyRaw;
+  Currency? get currency => currencyRaw.value;
+  Currency get currencyOrDefault => currency ?? dataStoreCurrencyDefault;
 
   List<ModelControllers> models;
   String get modelsJson {
@@ -42,7 +41,7 @@ class DataStore extends ChangeNotifier {
         printoutToController.text.isNotEmpty ||
         printoutKeepPrivateRaw != false ||
         isModelsModified ||
-        currency.text != dataStoreCurrencyDefault;
+        currency != dataStoreCurrencyDefault;
   }
 
   DataStore._({
@@ -51,12 +50,17 @@ class DataStore extends ChangeNotifier {
     required this.printoutToController,
     required this.printoutKeepPrivateRaw,
     required this.models,
-    required this.currency,
+    required this.currencyRaw,
   }) {
-    printoutTitleController.addListener(notifyListeners);
-    printoutFromController.addListener(notifyListeners);
-    printoutToController.addListener(notifyListeners);
-    currency.addListener(notifyListeners);
+    printoutTitleController.addListener(render);
+    printoutFromController.addListener(render);
+    printoutToController.addListener(render);
+    currencyRaw.addListener(render);
+  }
+
+  void render() {
+    reportUrlToPlatform();
+    notifyListeners();
   }
 
   static DataStore get _default => DataStore._(
@@ -65,7 +69,7 @@ class DataStore extends ChangeNotifier {
     printoutToController: TextEditingController(),
     printoutKeepPrivateRaw: false,
     models: [ModelControllers()],
-    currency: TextEditingController(text: dataStoreCurrencyDefault),
+    currencyRaw: ValueNotifier<Currency?>(null),
   );
 
   static DataStore? _instance;
@@ -97,7 +101,10 @@ class DataStore extends ChangeNotifier {
           .map((m) => ModelControllers.fromJson(m))
           .toList();
     }, fallback: fallback.models);
-    instance.currency.text = currency ?? dataStoreCurrencyDefault;
+    instance.currencyRaw.value = tryWithFallback(
+      () => Currency.fromCode(currency ?? ""),
+      fallback: dataStoreCurrencyDefault,
+    );
 
     instance.reportUrlToPlatform();
   }
@@ -116,7 +123,7 @@ class DataStore extends ChangeNotifier {
           (models.length != 1 || models[0].isModified)
               ? jsonDecode(modelsJson)
               : null,
-      "currency": currencyText,
+      "currency": currency?.code.orNullOnDefault(dataStoreCurrencyDefault.code),
     }..removeNullValues(),
   );
 
@@ -130,7 +137,7 @@ class DataStore extends ChangeNotifier {
       "printoutKeepPrivate": printoutKeepPrivate.toStringOrNull(),
       "models":
           (models.length != 1 || models[0].isModified) ? modelsJson : null,
-      "currency": currencyText,
+      "currency": currency?.code.orNullOnDefault(dataStoreCurrencyDefault.code),
     }..removeNullValues()).orNull,
   );
 }
@@ -266,13 +273,18 @@ class ModelControllers extends ChangeNotifier {
 
        margin = TextEditingController(text: margin),
        fixPrice = TextEditingController(text: fixPrice) {
-    this.name.addListener(notifyListeners);
-    this.quantity.addListener(notifyListeners);
-    this.description.addListener(notifyListeners);
-    this.time.addListener(notifyListeners);
-    this.hourlyRate.addListener(notifyListeners);
-    this.margin.addListener(notifyListeners);
-    this.fixPrice.addListener(notifyListeners);
+    this.name.addListener(render);
+    this.quantity.addListener(render);
+    this.description.addListener(render);
+    this.time.addListener(render);
+    this.hourlyRate.addListener(render);
+    this.margin.addListener(render);
+    this.fixPrice.addListener(render);
+  }
+
+  void render() {
+    notifyListeners();
+    data.render();
   }
 
   ModelControllers.fromJson(Map<String, dynamic> json)
@@ -303,13 +315,13 @@ class ModelControllers extends ChangeNotifier {
 
       margin = TextEditingController(text: json["margin"]?.toString()),
       fixPrice = TextEditingController(text: json["fixPrice"]?.toString()) {
-    name.addListener(notifyListeners);
-    quantity.addListener(notifyListeners);
-    description.addListener(notifyListeners);
-    time.addListener(notifyListeners);
-    hourlyRate.addListener(notifyListeners);
-    margin.addListener(notifyListeners);
-    fixPrice.addListener(notifyListeners);
+    name.addListener(render);
+    quantity.addListener(render);
+    description.addListener(render);
+    time.addListener(render);
+    hourlyRate.addListener(render);
+    margin.addListener(render);
+    fixPrice.addListener(render);
   }
 
   @override

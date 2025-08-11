@@ -111,6 +111,24 @@ class _AppDialogState extends State<AppDialog> {
                   // ),
                 ],
                 viewConstraints: const BoxConstraints(maxHeight: 250),
+                builder:
+                    (context, controller) => ListTile(
+                      dense: true,
+                      leading: AnimatedSwitcher(
+                        duration: Duration(milliseconds: 250),
+                        switchInCurve: Curves.fastEaseInToSlowEaseOut,
+                        child: _FlagLeading(
+                          key: ValueKey(currentLocale),
+                          locale: currentLocale,
+                        ),
+                      ),
+                      title: Text(AppLocalizations.of(context).languageName),
+
+                      subtitle: Text(
+                        "Language used in this app. Click to change.",
+                      ),
+                      onTap: () => controller.openView(),
+                    ),
                 suggestionsBuilder: (context, controller) async {
                   final locales = <String, String>{};
                   for (var locale in AppLocalizations.supportedLocales) {
@@ -152,6 +170,9 @@ class _AppDialogState extends State<AppDialog> {
                         onTap: () {
                           mainAppKey.currentState?.changeLocale(Locale(code));
                           controller.closeView(null);
+                          Future.delayed(
+                            Durations.medium1,
+                          ).then((_) => controller.clear());
                         },
                       ),
                     );
@@ -159,24 +180,6 @@ class _AppDialogState extends State<AppDialog> {
 
                   return widgets;
                 },
-                builder:
-                    (context, controller) => ListTile(
-                      dense: true,
-                      leading: AnimatedSwitcher(
-                        duration: Duration(milliseconds: 250),
-                        switchInCurve: Curves.fastEaseInToSlowEaseOut,
-                        child: _FlagLeading(
-                          key: ValueKey(currentLocale),
-                          locale: currentLocale,
-                        ),
-                      ),
-                      title: Text(AppLocalizations.of(context).languageName),
-
-                      subtitle: Text(
-                        "Language used in this app. Click to change.",
-                      ),
-                      onTap: () => controller.openView(),
-                    ),
               )
               // : ListTile(
               //   leading: Icon(Symbols.crowdsource),
