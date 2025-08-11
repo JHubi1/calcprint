@@ -141,10 +141,10 @@ packages:
     dependency: "direct main"
     description:
       name: cash
-      sha256: "20020eece46a3d8de70a4ad9ccab084cbc9551569e118d66960a36990383ca97"
+      sha256: "04b8bc5de0ef705712f23455be10f998555c717f2a38d26e68739d79d5a92b4b"
       url: "https://pub.dev"
     source: hosted
-    version: "1.0.0"
+    version: "1.1.0"
   chalkdart:
     dependency: transitive
     description:
