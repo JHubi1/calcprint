@@ -345,10 +345,10 @@ packages:
     dependency: "direct dev"
     description:
       name: gitbaker
-      sha256: "154f616c479764bb69b6dd5bd8fbae80fe0d2323e037e713b9af1c34c09ee8ec"
+      sha256: "81693623caede32dbf93e5ede69072507986e585eb27f418ab73e130cce42acc"
       url: "https://pub.dev"
     source: hosted
-    version: "0.0.6"
+    version: "0.0.7"
   glob:
     dependency: transitive
     description:
